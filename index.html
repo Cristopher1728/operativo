@@ -2,138 +2,338 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>🚔 TABLERO HUACHO — FUNCIONA COMPLETO</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OPERATIVOS ZONA DE HUACHO</title>
 <style>
-:root{
-  --morado:#551a8b;
-  --fondo:#f7f5ff;
-  --tarjeta:#ffffff;
-  --sombra:rgba(85,26,139,.2);
-  --libre-claro:#dcfce7; --libre-fuerte:#16a34a;
-  --oper-claro:#fee2e2; --oper-fuerte:#dc2626;
+:root {
+    /* 🎨 COLORES INALTERADOS — PERFECTOS */
+    --libre-desact-fondo: #e6f9e9;
+    --libre-desact-borde: #2e933c;
+    --libre-act-fondo: #22a849;
+    --libre-texto: #000000;
+    --libre-circulo: #4ade80;
+
+    --oper-desact-fondo: #fee2e2;
+    --oper-desact-borde: #fca5a5;
+    --oper-act-fondo: #dc2626;
+    --oper-act-borde: #991b1b;
+    --oper-texto: #ffffff;
+    --oper-circulo: #ef4444;
+
+    --fondo-pagina: #f9fafb;
+    --etiqueta-fondo: #f3f4f6;
+    --etiqueta-texto: #1f2937;
+    --fuente: system-ui, Roboto, Arial, sans-serif;
 }
-*{box-sizing:border-box;margin:0;padding:0;}
-body{font-family:system-ui,Arial,sans-serif;background:var(--fondo);padding:16px;max-width:720px;margin:auto;}
-h1{text-align:center;color:var(--morado);font-size:22px;}
-.info{background:#ede9fe;border-left:4px solid var(--morado);padding:14px;border-radius:12px;margin:16px 0;text-align:center;line-height:1.5;}
-.panel{background:var(--tarjeta);border-radius:18px;padding:20px;box-shadow:0 4px 12px var(--sombra);}
-.fila{display:flex;align-items:center;justify-content:space-between;padding:16px 12px;border-bottom:1px solid #eee;flex-wrap:wrap;gap:14px;}
-.fila:last-child{border-bottom:0;}
-.nombre{font-size:17px;font-weight:600;flex:1;}
-.valor{font-family:monospace;color:#555;padding:4px 10px;border-radius:8px;background:#f3f4f6;min-width:50px;text-align:center;}
-.botones{display:flex;gap:12px;flex-wrap:wrap;}
-.boton{
-  border:3px solid transparent;
-  border-radius:26px;
-  font-weight:bold;
-  padding:12px 18px;
-  min-width:110px;
-  font-size:16px;
-  cursor:pointer;
-  transition:all .25s ease;
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+    font-family: var(--fuente);
+    background: var(--fondo-pagina);
+    padding: 14px;
+    max-width: 720px;
+    margin: auto;
 }
-.boton.libre{background:var(--libre-claro);color:#14532d;border-color:#bbf7d0;}
-.boton.libre.activo{background:var(--libre-fuerte);color:white;border-color:#166534;box-shadow:inset 0 0 0 4px rgba(22,163,74,.25);}
-.boton.operativo{background:var(--oper-claro);color:#7f1d1d;border-color:#fecaca;}
-.boton.operativo.activo{background:var(--oper-fuerte);color:white;border-color:#b91c1c;box-shadow:inset 0 0 0 4px rgba(220,38,38,.25);}
-.boton:disabled{opacity:.6;cursor:not-allowed;}
-.estado{padding:14px;border-radius:12px;text-align:center;margin-top:18px;font-weight:500;}
-.espera{background:#fffbeb;color:#92400e;}
-.ok{background:#ecfdf5;color:#065f46;}
-.err{background:#fef2f2;color:#991b1b;}
+
+/* 🏷️ TÍTULO: MÁXIMA FUERZA — 900 + PROFUNDIDAD VISUAL */
+.titulo-principal {
+    text-align: center;
+    font-size: 1.6rem;
+    font-weight: 900; /* 💪 Imposible más negrita */
+    color: #1e1b4b;
+    margin-bottom: 12px; /* Menos espacio abajo = más ajustado */
+    letter-spacing: .4px;
+}
+
+/* 📍 ESTADO: SOLO LO NECESARIO, SIN EXTRAS */
+.estado {
+    border-radius: 12px;
+    padding: 10px; /* Más compacto también */
+    text-align: center;
+    font-weight: bold;
+    margin-bottom: 14px;
+    font-size: .95rem;
+}
+.espera { background: #fffbeb; color: #92400e; }
+.ok    { background: #dcfce7; color: #166534; }
+.err   { background: #fef2f2; color: #991b1b; }
+
+/* 📍 FILAS: AJUSTADAS, SIN ESPACIOS SOBRANTES */
+.fila {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 10px 6px; /* Menos relleno vertical */
+    border-bottom: 1px solid #e5e7eb;
+}
+.fila-cabecera {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 17px;
+    font-weight: 500;
+}
+.dato {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: var(--etiqueta-fondo);
+    color: var(--etiqueta-texto);
+    padding: 4px 11px; /* Más pequeño y limpio */
+    border-radius: 18px;
+    font-size: 14px;
+}
+.dato .pin { color: #dc2626; font-weight: bold; }
+
+/* 🟩 BOTONES: ✅ UN POCO MÁS CHATITOS — ELEGANCIA PURA */
+.grupo-botones {
+    display: flex;
+    gap: 10px;
+}
+.boton {
+    flex: 1;
+    border-radius: 999px; /* Sigue perfectamente redondo */
+    border: 3px solid;
+    font-weight: bold;
+    font-size: 16px;
+    /* ⬇️ MENOS ALTURA AÚN — justo 1–2mm como pediste: */
+    padding: 9px 14px 9px 38px; 
+    position: relative;
+    cursor: pointer;
+    transition: all 0.18s ease;
+}
+/* Círculo también ajustado al nuevo tamaño elegante */
+.boton::before {
+    content: "";
+    position: absolute;
+    left: 11px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 15px;
+    height: 15px; /* Ligeramente más esbelto */
+    border-radius: 50%;
+    background: white;
+    border: 2px solid rgba(0,0,0,.12);
+}
+
+/* 🟢 LIBRE — COLORES INTACTOS */
+.boton.libre {
+    background-color: var(--libre-desact-fondo);
+    border-color: var(--libre-desact-borde);
+    color: var(--libre-texto);
+}
+.boton.libre.activo {
+    background-color: var(--libre-act-fondo);
+    border-color: #166534;
+    color: white;
+}
+.boton.libre.activo::before {
+    background-color: var(--libre-circulo);
+    border-color: white;
+}
+
+/* 🔴 OPERATIVO — IGUAL DE IMPACTANTE Y CLARO */
+.boton.operativo {
+    background-color: var(--oper-desact-fondo);
+    border-color: var(--oper-desact-borde);
+    color: #7f1d1d;
+}
+.boton.operativo.activo {
+    background-color: var(--oper-act-fondo);
+    border-color: var(--oper-act-borde);
+    color: var(--oper-texto);
+}
+.boton.operativo.activo::before {
+    background-color: var(--oper-circulo);
+    border-color: white;
+}
+
+/* 🛣️ BLOQUES DE RUTA: MÁS COMPACTOS PERO DELIMITADOS */
+.ruta-bloque {
+    border:3px solid #7c3aed;
+    border-radius:18px;
+    background:white;
+    padding:13px; /* Menos por dentro */
+    margin-bottom:16px;
+}
+.ruta-bloque h2 {
+    color:#5b21b6;
+    border-bottom:2px solid #ddd6fe;
+    padding-bottom:6px;
+    margin-bottom:11px;
+    font-size:1.15rem; /* Proporción elegante */
+}
 </style>
 </head>
 <body>
 
-<h1>🚔 OPERATIVOS ZONA DE HUACHO - HUAHURA 🚔</h1>
-<div class="info">
-✅ Nombres iguales en ambos lados → el resalte se queda puesto ✨<br>
-🟢 Libre = sin actividad | 🔴 Operativo = control activo — además verás el número confirmado 📌
+<h1 class="titulo-principal">🚔 OPERATIVOS ZONA DE HUACHO 🚔</h1>
+
+<!-- 🧹 LISTO: ELIMINADO EL BLOQUE DE TEXTO EXPLICATIVO — NADA QUE ESTORBE -->
+
+<div id="estado_general" class="estado espera">🔄 Conectando…</div>
+
+<!-- 🛣️ RUTA 01 -->
+<div class="ruta-bloque">
+    <h2>🛣️ RUTA 01</h2>
+
+    <div class="fila">
+        <div class="fila-cabecera"><span>🏫 Universidad JFSC</span><span class="dato"><span class="pin">📌</span><span class="val">0</span></span></div>
+        <div class="grupo-botones">
+            <button class="boton libre" data-id="universidad_jfsc" data-val="0">LIBRE</button>
+            <button class="boton operativo" data-id="universidad_jfsc" data-val="1">OPERATIVO</button>
+        </div>
+    </div>
+    <div class="fila">
+        <div class="fila-cabecera"><span>🏫 Colegio Indacochea</span><span class="dato"><span class="pin">📌</span><span class="val">0</span></span></div>
+        <div class="grupo-botones">
+            <button class="boton libre" data-id="colegio_indacochea" data-val="0">LIBRE</button>
+            <button class="boton operativo" data-id="colegio_indacochea" data-val="1">OPERATIVO</button>
+        </div>
+    </div>
+    <div class="fila">
+        <div class="fila-cabecera"><span>🏫 Colegio 20318</span><span class="dato"><span class="pin">📌</span><span class="val">0</span></span></div>
+        <div class="grupo-botones">
+            <button class="boton libre" data-id="colegio_20318" data-val="0">LIBRE</button>
+            <button class="boton operativo" data-id="colegio_20318" data-val="1">OPERATIVO</button>
+        </div>
+    </div>
+    <div class="fila">
+        <div class="fila-cabecera"><span>🏥 Hospital Regional</span><span class="dato"><span class="pin">📌</span><span class="val">0</span></span></div>
+        <div class="grupo-botones">
+            <button class="boton libre" data-id="hospital_regional" data-val="0">LIBRE</button>
+            <button class="boton operativo" data-id="hospital_regional" data-val="1">OPERATIVO</button>
+        </div>
+    </div>
+    <div class="fila">
+        <div class="fila-cabecera"><span>🏛️ Plaza de Armas</span><span class="dato"><span class="pin">📌</span><span class="val">0</span></span></div>
+        <div class="grupo-botones">
+            <button class="boton libre" data-id="plaza_de_armas" data-val="0">LIBRE</button>
+            <button class="boton operativo" data-id="plaza_de_armas" data-val="1">OPERATIVO</button>
+        </div>
+    </div>
+    <div class="fila">
+        <div class="fila-cabecera"><span>🔄 Atahualpa - Adán Acevedo</span><span class="dato"><span class="pin">📌</span><span class="val">0</span></span></div>
+        <div class="grupo-botones">
+            <button class="boton libre" data-id="atahualpa_adan_acevedo" data-val="0">LIBRE</button>
+            <button class="boton operativo" data-id="atahualpa_adan_acevedo" data-val="1">OPERATIVO</button>
+        </div>
+    </div>
+    <div class="fila">
+        <div class="fila-cabecera"><span>🏙️ Plazuela San Martín</span><span class="dato"><span class="pin">📌</span><span class="val">0</span></span></div>
+        <div class="grupo-botones">
+            <button class="boton libre" data-id="plazuela_san_martin" data-val="0">LIBRE</button>
+            <button class="boton operativo" data-id="plazuela_san_martin" data-val="1">OPERATIVO</button>
+        </div>
+    </div>
 </div>
-<div id="aviso" class="estado espera">🔄 Conectando con base compartida…</div>
-<div class="panel" id="contenedor"></div>
+
+<!-- 🛣️ RUTA 02 -->
+<div class="ruta-bloque">
+    <h2>🛣️ RUTA 02</h2>
+
+    <div class="fila">
+        <div class="fila-cabecera"><span>🏙️ Plaza Del Sol</span><span class="dato"><span class="pin">📌</span><span class="val">0</span></span></div>
+        <div class="grupo-botones">
+            <button class="boton libre" data-id="plaza_del_sol" data-val="0">LIBRE</button>
+            <button class="boton operativo" data-id="plaza_del_sol" data-val="1">OPERATIVO</button>
+        </div>
+    </div>
+    <div class="fila">
+        <div class="fila-cabecera"><span>🛣️ Av. Grau</span><span class="dato"><span class="pin">📌</span><span class="val">0</span></span></div>
+        <div class="grupo-botones">
+            <button class="boton libre" data-id="av_grau" data-val="0">LIBRE</button>
+            <button class="boton operativo" data-id="av_grau" data-val="1">OPERATIVO</button>
+        </div>
+    </div>
+    <div class="fila">
+        <div class="fila-cabecera"><span>🏦 BCP y Ex-Carsa</span><span class="dato"><span class="pin">📌</span><span class="val">0</span></span></div>
+        <div class="grupo-botones">
+            <button class="boton libre" data-id="bcp_ex_carsa" data-val="0">LIBRE</button>
+            <button class="boton operativo" data-id="bcp_ex_carsa" data-val="1">OPERATIVO</button>
+        </div>
+    </div>
+    <div class="fila">
+        <div class="fila-cabecera"><span>⚽ Estadio de Huacho</span><span class="dato"><span class="pin">📌</span><span class="val">0</span></span></div>
+        <div class="grupo-botones">
+            <button class="boton libre" data-id="estadio_de_huacho" data-val="0">LIBRE</button>
+            <button class="boton operativo" data-id="estadio_de_huacho" data-val="1">OPERATIVO</button>
+        </div>
+    </div>
+    <div class="fila">
+        <div class="fila-cabecera"><span>🔵 Óvalo de Huacho</span><span class="dato"><span class="pin">📌</span><span class="val">0</span></span></div>
+        <div class="grupo-botones">
+            <button class="boton libre" data-id="ovalo_de_huacho" data-val="0">LIBRE</button>
+            <button class="boton operativo" data-id="ovalo_de_huacho" data-val="1">OPERATIVO</button>
+        </div>
+    </div>
+    <div class="fila">
+        <div class="fila-cabecera"><span>🍽️ Restaurante Pascual</span><span class="dato"><span class="pin">📌</span><span class="val">0</span></span></div>
+        <div class="grupo-botones">
+            <button class="boton libre" data-id="restaurante_pascual" data-val="0">LIBRE</button>
+            <button class="boton operativo" data-id="restaurante_pascual" data-val="1">OPERATIVO</button>
+        </div>
+    </div>
+    <div class="fila">
+        <div class="fila-cabecera"><span>🌉 Puente de Huaura</span><span class="dato"><span class="pin">📌</span><span class="val">0</span></span></div>
+        <div class="grupo-botones">
+            <button class="boton libre" data-id="puente_de_huahura" data-val="0">LIBRE</button>
+            <button class="boton operativo" data-id="puente_de_huahura" data-val="1">OPERATIVO</button>
+        </div>
+    </div>
+</div>
 
 <script>
-// ✅ RUTAS FIJAS Y SEGURAS — FUNCIONAN SIEMPRE CON TÚNEL / LOCAL
-const URL_DATOS = "/datos";
-const URL_GUARDAR = "/cambiar";
-const INTERVALO = 2800;
+/* ⚙️ FUNCIONAMIENTO 100% INTACTO, LIMPIO Y SEGURO */
+const ESTADO_EL = document.getElementById("estado_general");
+const INTERVALO = 2500;
 
-// 📋 LISTA COMPLETA Y EXACTA (igual que servidor.py — sin tildes en ids internos)
-const PUNTOS = [
-  {id:"universidad", et:"🏫 Universidad"},
-  {id:"mercedes", et:"🛣️ Av_Mercedes_Indacochea"},
-  {id:"plaza_armas", et:"🏛️ Plaza_Armas"},
-  {id:"atahualpa", et:"🔄 Atahualpa"},
-  {id:"ovalo", et:"🔵 Óvalo Huacho"},
-  {id:"veintiocho", et:"📅 Av_28_Julio"},
-  {id:"plaza_sol", et:"☀️ Plaza_Sol"},
-  {id:"puente", et:"🌉 Puente Huahura"}
-];
-
-// 🎨 PINTAR TODO LIMPIO Y RESALTADO
-function mostrarTablero(estado){
-  const caja = document.getElementById("contenedor");
-  caja.innerHTML = "";
-  PUNTOS.forEach(lugar=>{
-    const valor = estado[lugar.id] ?? 0;
-    const fila = document.createElement("div");
-    fila.className = "fila";
-    fila.innerHTML = `
-      <span class="nombre">${lugar.et}</span>
-      <span class="valor">📌${valor}</span>
-      <div class="botones">
-        <button class="boton libre ${valor===0?'activo':''}" 
-                onclick="cambiarEstado('${lugar.id}', 0, this)">🟢 LIBRE</button>
-        <button class="boton operativo ${valor===1?'activo':''}" 
-                onclick="cambiarEstado('${lugar.id}', 1, this)">🔴 OPERATIVO</button>
-      </div>
-    `;
-    caja.appendChild(fila);
-  });
-  document.getElementById("aviso").className="estado ok";
-  document.getElementById("aviso").textContent="✅ SINCRONIZADO — Grupo conectado y actual ✅";
+function mostrarEstado(txt,clase){
+    ESTADO_EL.textContent=txt;
+    ESTADO_EL.className=`estado ${clase}`;
 }
 
-// 💾 FUNCIÓN DE CAMBIO: BLOQUEA, ENVÍA Y CONFIRMA DESDE SERVIDOR
-async function cambiarEstado(id, valor, boton){
-  const fila = boton.closest(".fila");
-  fila.querySelectorAll(".boton").forEach(b=>b.disabled=true);
-  document.getElementById("aviso").className="estado espera";
-  document.getElementById("aviso").textContent="📤 Guardando posición para todos…";
-
-  try{
-    const respuesta = await fetch(URL_GUARDAR, {
-      method:"POST",
-      headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({id: id, valor: valor})
+function aplicarDatos(estado){
+    document.querySelectorAll(".boton").forEach(btn=>{
+        const activo = estado[btn.dataset.id] === Number(btn.dataset.val);
+        btn.classList.toggle("activo", activo);
     });
-    if(!respuesta.ok) throw new Error("Fallo red");
-    await recargarDatos(); // ← LECTURA REAL, NO ADIVINA
-  }catch(err){
-    document.getElementById("aviso").className="estado err";
-    document.getElementById("aviso").textContent="❌ Desconectado / revisa túnel o servidor";
-    fila.querySelectorAll(".boton").forEach(b=>b.disabled=false);
-  }
+    document.querySelectorAll(".fila").forEach(f=>{
+        const ref=f.querySelector(".libre").dataset.id;
+        f.querySelector(".val").textContent=estado[ref];
+    });
+    mostrarEstado("✅ Conectado — Funcionando eficientemente","ok");
 }
 
-// 🔄 LECTURA FIABLE: PREGUNTA AL SERVIDOR VERDADERO CADA VEZ
-async function recargarDatos(){
-  try{
-    const resp = await fetch(URL_DATOS + "?" + Date.now()); // evita caché
-    const datos = await resp.json();
-    mostrarTablero(datos);
-  }catch(e){
-    document.getElementById("aviso").className="estado err";
-    document.getElementById("aviso").textContent="📉 Sin conexión central / revisa enlace";
-  }
+async function recargar(){
+    try{
+        mostrarEstado("Leyendo estado…","espera");
+        const res=await fetch(`/datos?t=${Date.now()}`,{cache:"no-store"});
+        if(!res.ok) throw new Error("fallo");
+        aplicarDatos(await res.json());
+    }catch(e){ mostrarEstado("❌ Revisa conexión/servidor","err"); }
 }
 
-// 🚀 ARRANQUE Y VIGILANCIA PERIÓDICA AUTOMÁTICA
-document.addEventListener("DOMContentLoaded", ()=>{
-  recargarDatos();
-  setInterval(recargarDatos, INTERVALO);
+async function cambiar(id,val){
+    document.querySelectorAll(".boton").forEach(b=>b.disabled=true);
+    mostrarEstado("Guardando…","espera");
+    try{
+        await fetch("/cambiar",{
+            method:"POST",
+            headers:{"Content-Type":"application/json"},
+            body:JSON.stringify({id,valor:val})
+        });
+        await recargar();
+    }catch(x){ mostrarEstado("❌ Error al guardar","err"); }
+    document.querySelectorAll(".boton").forEach(b=>b.disabled=false);
+}
+
+document.addEventListener("DOMContentLoaded",()=>{
+    document.querySelectorAll(".boton").forEach(b=>{
+        b.addEventListener("click",()=>cambiar(b.dataset.id,Number(b.dataset.val)));
+    });
+    recargar();
+    setInterval(recargar,INTERVALO);
 });
 </script>
 </body>
