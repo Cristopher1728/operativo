@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Velocímetro GPS</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; }
+  html, body {
+    background: #000;
+    color: #0ff;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+    position: fixed;
+  }
+  body {
+    display: flex;
+    flex-direction: column;
+    padding: 12px 20px;
+  }
+
+  @media (orientation: portrait) {
+    body {
+      transform: rotate(90deg);
+      transform-origin: left top;
+      width: 100vh;
+      height: 100vw;
+      position: absolute;
+      top: 0;
+      left: 100vw;
+    }
+  }
+
+  .fila-superior {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 8px;
+  }
+  .ubicacion {
+    font-size: 24px;
+    font-weight: bold;
+    color: #0ff;
+    min-height: 32px;
+  }
+  .titulo-bloque {
+    border-bottom: 3px solid #0ff;
+    padding: 4px 14px;
+    font-size: 26px;
+    color: #0ff;
+    display: inline-block;
+  }
+  .fecha-bloque {
+    text-align: center;
+    font-size: 20px;
+    line-height: 1.4;
+    color: #0ff;
+  }
+  .gps-estado {
+    font-size: 18px;
+    color: #ffb020;
+  }
+  .zona-central {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 1;
+    gap: 40px;
+    padding: 0 20px;
+  }
+  .vel-grande {
+    font-size: 160px;
+    font-weight: bold;
+    color: #0ff;
+    text-shadow: 0 0 30px #0ff;
+    line-height: 1;
+    text-align: center;
+    min-width: 180px;
+  }
+  .vel-unidad {
+    font-size: 32px;
+    color: #0ff;
+    margin-top: 5px;
+    text-align: center;
+  }
+  .grid-datos {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    width: 55%;
+    min-width: 500px;
+  }
+  .caja-dato {
+    background: rgba(0,255,255,0.08);
+    border: 2px solid #0ff;
+    border-radius: 14px;
+    padding: 12px 16px;
+  }
+  .etiqueta {
+    font-size: 17px;
+    color: #9df;
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .valor {
+    font-size: 34px;
+    font-weight: bold;
+    color: #0ff;
+  }
+  .zona-botones {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 25px;
+    padding-top: 10px;
+    padding-bottom: 5px;
+  }
+  button {
+    border-radius: 50%;
+    border: none;
+    cursor: pointer;
+    font-weight: bold;
+    transition: transform 0.1s;
+  }
+  button:active { transform: scale(0.95); }
+  .btn-reiniciar {
+    width: 70px;
+    height: 70px;
+    background: #333;
+    color: #fff;
+    font-size: 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+  }
+  .btn-reiniciar span { font-size: 12px; margin-top: 4px; }
+  .btn-detener {
+    width: 220px;
+    height: 70px;
+    border-radius: 35px;
+    background: #0ff;
+    color: #000;
+    font-size: 26px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+  .btn-pausa {
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    background: #0088ff;
+    color: #fff;
+    font-size: 28px;
+  }
+</style>
+</head>
+<body>
+
+<div class="fila-superior">
+  <div>
+    <div class="ubicacion" id="barra-ubicacion">Identificando vía...</div>
+    <div class="titulo-bloque">Velocímetro</div>
+  </div>
+  <div class="fecha-bloque" id="fecha-hora"></div>
+  <div class="gps-estado" id="gps-status">Buscando señal...</div>
+</div>
+
+<div class="zona-central">
+  <div>
+    <div class="vel-grande" id="dig-vel">0</div>
+    <div class="vel-unidad">km/h</div>
+  </div>
+  <div class="grid-datos">
+    <div class="caja-dato">
+      <div class="etiqueta">⏱️ Duración</div>
+      <div class="valor" id="dig-dur">00:00:00</div>
+    </div>
+    <div class="caja-dato">
+      <div class="etiqueta">📍 Distancia</div>
+      <div class="valor" id="dig-dist">0.00 km</div>
+    </div>
+    <div class="caja-dato">
+      <div class="etiqueta">📈 Velocidad prom.</div>
+      <div class="valor" id="dig-avg">0 km/h</div>
+    </div>
+    <div class="caja-dato">
+      <div class="etiqueta">⚡ Velocidad máx.</div>
+      <div class="valor" id="dig-max">0 km/h</div>
+    </div>
+  </div>
+</div>
+
+<div class="zona-botones">
+  <button class="btn-reiniciar" id="btn-reiniciar">🔄<span>Reiniciar</span></button>
+  <button class="btn-detener" id="btn-detener">⬛ Detener</button>
+  <button class="btn-pausa" id="btn-pausa">⏸️</button>
+</div>
+
+<script>
+async function entrarPantallaCompleta() {
+  try {
+    if (document.documentElement.requestFullscreen) await document.documentElement.requestFullscreen();
+    else if (document.documentElement.webkitRequestFullscreen) await document.documentElement.webkitRequestFullscreen();
+    if (screen.orientation && screen.orientation.lock) screen.orientation.lock('landscape').catch(() => {});
+  } catch (e) {}
+}
+entrarPantallaCompleta();
+document.addEventListener('click', entrarPantallaCompleta, { once: true });
+document.addEventListener('touchstart', entrarPantallaCompleta, { once: true });
+
+let watchID = null;
+let isRunning = false;
+let isPaused = false;
+let elapsedSeconds = 0;
+let totalDistance = 0;
+let maxSpeed = 0;
+let speedSum = 0;
+let speedCount = 0;
+let lastPosition = null;
+let ultimaConsultaCalle = 0;
+let ultimoNombreCalle = null;
+let primeraConsultaLista = false; // ✅ Primera consulta SIN esperar
+
+function actualizarFechaHora() {
+  const a = new Date();
+  const h = a.getHours(), m = a.getMinutes().toString().padStart(2,'0');
+  const d = a.getDate().toString().padStart(2,'0');
+  const M = (a.getMonth()+1).toString().padStart(2,'0');
+  document.getElementById('fecha-hora').innerHTML = `${h}:${m} ${h>=12?'PM':'AM'}<br>${d}/${M}/${a.getFullYear()}`;
+}
+setInterval(actualizarFechaHora, 1000);
+actualizarFechaHora();
+
+function calcDist(p1, p2) {
+  if (!p1 || !p2) return 0;
+  const R = 6371;
+  const dLat = (p2.latitude - p1.latitude) * Math.PI / 180;
+  const dLon = (p2.longitude - p1.longitude) * Math.PI / 180;
+  const a = Math.sin(dLat/2)**2 + Math.cos(p1.latitude*Math.PI/180)*Math.cos(p2.latitude*Math.PI/180)*Math.sin(dLon/2)**2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+
+// ✅ TRADUCIR COORDENADAS — MÁS RÁPIDO, SIN QUEDARSE PEGADO
+async function traducir(pos) {
+  const lat = pos.coords.latitude;
+  const lon = pos.coords.longitude;
+  const ahora = Date.now();
+
+  // 🚫 Después de la primera vez: esperar 10s o 50m
+  if (primeraConsultaLista && (ahora - ultimaConsultaCalle < 10000)) {
+    const distMovida = calcDist(ultimaCalle, {latitude: lat, longitude: lon}) * 1000;
+    if (distMovida < 50) return;
+  }
+  primeraConsultaLista = true; // ✅ Primera consulta: INMEDIATA
+
+  ultimaConsultaCalle = ahora;
+  ultimaCalle = {latitude: lat, longitude: lon};
+
+  const controlTiempo = setTimeout(() => {
+    if (!ultimoNombreCalle) {
+      document.getElementById('barra-ubicacion').textContent = 'Ubicación cargando...';
+    }
+  }, 3000); // ⏱️ Si tarda más de 3s, no se queda pegado
+
+  try {
+    const control = new AbortController();
+    const tiempoLimite = setTimeout(() => control.abort(), 6000); // ⏱️ Máximo 6s de espera
+
+    const res = await fetch(
+      `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&accept-language=es&zoom=17&addressdetails=1`,
+      { signal: control.signal, headers: { 'User-Agent': 'VelocimetroGPS/1.0' } }
+    );
+    clearTimeout(tiempoLimite);
+    clearTimeout(controlTiempo);
+
+    if (!res.ok) throw new Error('Servicio ocupado');
+    const d = await res.json();
+
+    let via = null;
+    if (d && d.address) {
+      via = d.address.road || d.address.street || d.address.pedestrian || d.address.avenue || null;
+      if (!via) via = d.address.suburb || d.address.neighbourhood || null;
+      if (via && !via.match(/^(Jirón|Jr|Av|Avenida|Calle|Pasaje|Óvalo|Plaza)/i)) {
+        via = 'Calle ' + via;
+      }
+    }
+
+    if (via) {
+      ultimoNombreCalle = via;
+      document.getElementById('barra-ubicacion').textContent = via;
+    } else {
+      if (ultimoNombreCalle) {
+        document.getElementById('barra-ubicacion').textContent = ultimoNombreCalle;
+      } else {
+        document.getElementById('barra-ubicacion').textContent = 'Vía sin nombre';
+      }
+    }
+  } catch (err) {
+    clearTimeout(controlTiempo);
+    if (ultimoNombreCalle) {
+      document.getElementById('barra-ubicacion').textContent = ultimoNombreCalle;
+    } else {
+      document.getElementById('barra-ubicacion').textContent = 'Ubicación disponible';
+    }
+  }
+}
+
+function actualizarCronometro() {
+  if (!isRunning || isPaused) return;
+  elapsedSeconds++;
+  const h = Math.floor(elapsedSeconds/3600).toString().padStart(2,'0');
+  const m = Math.floor((elapsedSeconds%3600)/60).toString().padStart(2,'0');
+  const s = (elapsedSeconds%60).toString().padStart(2,'0');
+  document.getElementById('dig-dur').textContent = `${h}:${m}:${s}`;
+}
+setInterval(actualizarCronometro, 1000);
+
+function startGPS() {
+  if (!navigator.geolocation) {
+    document.getElementById('gps-status').textContent = 'GPS no disponible';
+    document.getElementById('barra-ubicacion').textContent = 'Ubicación no disponible';
+    return;
+  }
+
+  watchID = navigator.geolocation.watchPosition(
+    async (pos) => {
+      await traducir(pos);
+
+      let speed = 0;
+      if (pos.coords.speed && pos.coords.speed > 0) {
+        speed = Math.round(pos.coords.speed * 3.6);
+      } else if (lastPosition && isRunning && !isPaused) {
+        const dt = (pos.timestamp - lastPosition.timestamp) / 3600000;
+        if (dt > 0.0001) speed = Math.round(calcDist(lastPosition.coords, pos.coords) / dt);
+      }
+
+      document.getElementById('dig-vel').textContent = speed;
+      if (speed > maxSpeed) maxSpeed = speed;
+      document.getElementById('dig-max').textContent = maxSpeed + ' km/h';
+      if (speed > 0 && isRunning && !isPaused) {
+        speedSum += speed; speedCount++;
+        document.getElementById('dig-avg').textContent = Math.round(speedSum/speedCount) + ' km/h';
+      }
+      if (lastPosition && isRunning && !isPaused) {
+        totalDistance += calcDist(lastPosition.coords, pos.coords);
+        document.getElementById('dig-dist').textContent = totalDistance.toFixed(2) + ' km';
+      }
+      lastPosition = pos;
+
+      const acc = pos.coords.accuracy;
+      document.getElementById('gps-status').textContent =
+        acc < 50 ? '✅ Señal fuerte' : acc < 100 ? '⚠️ Señal moderada' : '🔴 Señal débil';
+    },
+    (err) => {
+      const m = err.code===1 ? '⚠️ Activa ubicación' : err.code===3 ? '⏳ Buscando señal...' : '❌ Error GPS';
+      document.getElementById('gps-status').textContent = m;
+    },
+    { enableHighAccuracy: true, maximumAge: 2000, timeout: 5000 }
+  );
+}
+
+document.getElementById('btn-reiniciar').onclick = () => {
+  if (watchID) navigator.geolocation.clearWatch(watchID);
+  isRunning = true; isPaused = false; elapsedSeconds = 0; totalDistance = 0; maxSpeed = 0; speedSum = 0; speedCount = 0; lastPosition = null; ultimaCalle = null; ultimaConsultaCalle = 0; ultimoNombreCalle = null; primeraConsultaLista = false;
+  document.getElementById('dig-vel').textContent = '0';
+  document.getElementById('dig-dur').textContent = '00:00:00';
+  document.getElementById('dig-dist').textContent = '0.00 km';
+  document.getElementById('dig-max').textContent = '0 km/h';
+  document.getElementById('dig-avg').textContent = '0 km/h';
+  document.getElementById('barra-ubicacion').textContent = 'Identificando vía...';
+  document.getElementById('btn-pausa').textContent = '⏸️';
+  startGPS();
+};
+
+document.getElementById('btn-detener').onclick = () => {
+  if (watchID) navigator.geolocation.clearWatch(watchID);
+  isRunning = false; isPaused = false;
+};
+
+document.getElementById('btn-pausa').onclick = () => {
+  isPaused = !isPaused;
+  document.getElementById('btn-pausa').textContent = isPaused ? '▶️' : '⏸️';
+};
+
+startGPS();
+isRunning = true;
+</script>
+
+</body>
+</html>
+
