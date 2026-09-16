@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🚔 OPERATIVOS ZONA HUACHO - HUAHURA 🚔</title>
+<style>
+:root{
+ --morado:#7e22ce;
+ --fondo:#f9f7ff;
+ --tarjeta:#ffffff;
+ --libre-claro:#dcfce7;
+ --libre-fuerte:#16a34a;
+ --libre-borde:#15803d;
+ --oper-claro:#fee2e2;
+ --oper-fuerte:#dc2626;
+ --oper-borde:#b91c1c;
+ --etiqueta:#f3f4f6;
+ --borde-et:#e5e7eb;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:system-ui,Arial,sans-serif;background:var(--fondo);padding:14px;max-width:720px;margin:auto;}
+
+/* Títulos principales */
+h1{text-align:center;font-size:1.7rem;font-weight:950;color:#1e1b4b;margin-bottom:6px;}
+.subtitulo{text-align:center;color:#6b21a8;font-weight:600;margin-bottom:16px;text-decoration:underline;}
+
+/* Barra superior RESUMEN: una sola línea perfecta */
+.barra-estado{
+ display:flex;align-items:center;justify-content:flex-start;gap:8px;flex-wrap:nowrap;
+ border:3px solid var(--morado);border-radius:18px;background:white;
+ padding:10px 12px;margin-bottom:18px;
+ font-weight:900;font-size:0.95rem;
+ white-space:nowrap;
+ overflow:hidden;
+}
+.clima{
+ display:flex;align-items:center;gap:6px;
+ color:#4c1d95;padding-left:4px;margin-right:auto;
+}
+.separador{color:#a855f7;}
+.txt-libres{color:var(--libre-fuerte);}
+.txt-oper{color:var(--oper-fuerte);}
+
+/* Bloque Ruta */
+.ruta{
+ border:3px solid var(--morado);border-radius:20px;background:white;
+ padding:16px;margin-bottom:20px;position:relative;overflow:hidden;
+}
+.titulo-ruta{
+ display:flex;align-items:center;gap:8px;color:var(--morado);
+ font-weight:900;font-size:1.5rem;
+ padding-bottom:10px;border-bottom:2px solid #e9d5ff;margin-bottom:24px;
+}
+
+/* FILA MAESTRA */
+.fila{
+ margin-bottom:26px;position:relative;
+}
+.fila:last-child{margin-bottom:0;}
+
+/* NOMBRE: Arriba limpio */
+.nombre-punto{
+ font-size:18px;font-weight:600;display:flex;align-items:center;gap:8px;
+ margin-bottom:10px;padding-left:4px;word-wrap:break-word;
+}
+
+/* CLAVITO: bien arriba, despegado del botón */
+.etiqueta-valor{
+ position:absolute;
+ top:-4px;
+ right:4px;
+ display:flex;align-items:center;gap:4px;
+ background:var(--etiqueta);border:1px solid var(--borde-et);
+ border-radius:20px;padding:5px 10px;font-weight:bold;color:#444;
+ z-index:10;white-space:nowrap;
+}
+.pin{color:#ef4444;font-size:16px;}
+
+/* Botones iguales y ordenados */
+.fila-botones{
+ display:flex;justify-content:space-between;align-items:center;gap:10px;
+ width:100%;padding:0 2px;
+}
+.boton{
+ border:3px solid transparent;border-radius:28px;
+ width:48%;height:46px;
+ font-size:18px;font-weight:bold;
+ display:flex;align-items:center;justify-content:center;gap:6px;
+ cursor:pointer;transition:.25s ease;
+}
+.boton::before{content:"●";font-size:20px;}
+
+.boton.libre{background:var(--libre-claro);color:#14532d;border-color:var(--libre-borde);}
+.boton.libre.activo{background:var(--libre-fuerte);color:white;}
+
+.boton.operativo{background:var(--oper-claro);color:#7f1d1d;border-color:var(--oper-borde);}
+.boton.operativo.activo{background:var(--oper-fuerte);color:white;}
+
+.boton:disabled{opacity:.6;cursor:not-allowed;}
+
+/* Mensaje sistema */
+.estado{padding:14px;border-radius:12px;text-align:center;margin-bottom:16px;font-weight:600;}
+.espera{background:#fffbeb;color:#92400e;}
+.listo{background:#dcfce7;color:#166534;}
+.falla{background:#fee2e2;color:#991b1b;}
+
+/* Ajuste perfecto móvil */
+@media (max-width:600px){
+ .barra-estado{font-size:0.85rem;padding:8px 10px;}
+ .boton{font-size:16px;}
+}
+
+
+
+
+/* === ESTILOS PARA BLOQUES DE RUTA (FONDO OSCURO UNIFICADO) === */
+section.ruta {
+  background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
+  border: 3px solid #ffffff;
+  border-radius: 16px;
+  padding: 18px 14px;
+  margin: 14px 0;
+  color: #ffffff;
+}
+
+.titulo-ruta {
+  color: #c4b5fd; /* morado elegante igual que tu firma */
+  font-weight: 900;
+  font-size: 1.4rem;
+  margin: 0 0 12px 0;
+  padding-bottom: 8px;
+  border-bottom: 2px solid #334155;
+}
+
+/* Asegura que nombres/iconos se vean blancos y nítidos */
+.punto, .nombre, .lugar, div[id^="bloque"] > * {
+  color: #ffffff !important;
+}
+
+
+
+
+
+  /* BARRA ESTADO: FONDO OSCURO Y BORDE BLANCO RESALTANTE */
+.barra-estado {
+  background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%); /* Mismo azul oscuro que todo tu sitio */
+  border: 3px solid #ffffff; /* Blanco grueso/luminoso como pediste */
+  border-radius: 16px; /* Esquinas redondas elegantes */
+  padding: 14px 12px;
+  margin: 12px 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: #ffffff !important; /* Todo texto claro */
+  font-weight: 700;
+}
+
+/* Separadores limpios */
+.separador {
+  color: #e2e8f0;
+  font-weight: bold;
+  margin: 0 6px;
+}
+
+/* Colores vivos para contadores */
+.txt-libres { color: #4ade80 !important; } /* Verde limpio */
+.txt-oper { color: #f87171 !important; }  /* Rojo vivo */
+
+
+
+
+</style>
+</head>
+
+
+
+
+
+<body style="
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
+  font-family: system-ui, -apple-system, sans-serif;
+">
+
+
+
+
+
+<!-- TÍTULO: BLANCO Y MÁXIMO FUERTE -->
+<h1 style="text-align:center; font-size:1.8rem; font-weight:900; color:#ffffff; margin-bottom:12px;">
+  🚔 OPERATIVOS ZONA HUACHO - HUAURA 🚔
+</h1>
+
+
+
+
+<!-- 🚗 BOTÓN VELOCÍMETRO -->
+<div style="text-align: center; margin: 10px 0 20px 0;">
+  <a href="/velocidad.html"
+     style="display: inline-block;
+            background: transparent;
+            color: #ffffff;
+            font-size: 15px;
+            font-weight: 700;
+            text-decoration: none;
+            padding: 10px 28px;
+            border: 2px solid #ffffff;
+            border-radius: 50px;
+            transition: all 0.2s ease;
+            box-shadow: 0 0 8px rgba(255,255,255,0.15);"
+     onmouseover="this.style.background='#ffffff';this.style.color='#000000';"
+     onmouseout="this.style.background='transparent';this.style.color='#ffffff';">
+    🚗 VELOCÍMETRO
+  </a>
+</div>
+
+
+
+
+
+<div style="
+  background: #0f172a;
+  border-radius: 16px;
+  padding: 15px 8px;
+  display: flex;
+  justify-content: space-around;
+  text-align: center;
+  color: white;
+  font-family: system-ui;
+  margin: 12px 0;
+  border: 3px solid #ffffff;
+  box-shadow: 0 2px 8px rgba(255,255,255,0.15);
+">
+  <!-- Elementos internos para que funcione (no rompen diseño) -->
+  <span id="temperatura" style="display:none;"></span>
+  <span id="icono-clima" style="display:none;"></span>
+
+  <div>
+    <b id="t1">—°</b><br>
+    <span id="i1"></span><br>
+    <small id="h1">—:00</small>
+  </div>
+  <div>
+    <b id="t2">—°</b><br>
+    <span id="i2"></span><br>
+    <small id="h2">—:00</small>
+  </div>
+  <div>
+    <b id="t3">—°</b><br>
+    <span id="i3"></span><br>
+    <small id="h3">—:00</small>
+  </div>
+  <div>
+    <b id="t4">—°</b><br>
+    <span id="i4"></span><br>
+    <small id="h4">—:00</small>
+  </div>
+  <div>
+    <b id="t5">—°</b><br>
+    <span id="i5"></span><br>
+    <small id="h5">—:00</small>
+  </div>
+</div>
+
+
+
+
+
+
+
+<div class="barra-estado">
+ 
+
+<div style="padding: 0 6px;">
+  <strong id="ubicacion-texto">Buscando…</strong>
+</div>
+
+
+ <span class="separador">│</span>
+ <span class="txt-libres">🟢 Libres: <strong id="libres">0</strong></span>
+ <span class="separador">│</span>
+ <span class="txt-oper">🔴 Operativos: <strong id="operativos">0</strong></span>
+</div>
+
+<div id="aviso" class="estado espera">🔄 Conectando…</div>
+
+<section class="ruta">
+ <h2 class="titulo-ruta">🛣️ RUTA 01</h2>
+ <div id="bloque1"></div>
+</section>
+
+<section class="ruta">
+ <h2 class="titulo-ruta">🛣️ RUTA 02</h2>
+ <div id="bloque2"></div>
+</section>
+
+<script>
+const URL_DATOS = "/datos";
+const URL_GUARDAR = "/cambiar";
+const REFRESCO = 2800;
+
+const RUTAS_DEF = {
+ r1: [
+  {id:"universidad_jfsc", et:"🏫 Universidad JFSC"},
+  {id:"colegio_indacochea", et:"🏫 Colegio Indacochea"},
+  {id:"colegio_20318", et:"🏫 Colegio 20318"},
+  {id:"hospital_regional", et:"🏥 Hospital Regional"},
+  {id:"plaza_de_armas", et:"🏛️ Plaza de Armas"},
+  {id:"atahualpa_adan_acevedo", et:"🔄 Atahualpa - Adán Acevedo"},
+  {id:"plazuela_san_martin", et:"🏙️ Plazuela San Martín"}
+ ],
+ r2: [
+  {id:"plaza_del_sol", et:"🏙️ Plaza Del Sol"},
+  {id:"av_grau", et:"🛣️ Av. Grau"},
+  {id:"bcp_ex_carsa", et:"🏦 BCP y Ex-Carsa"},
+  {id:"estadio_de_huacho", et:"⚽ Estadio de Huacho"},
+  {id:"ovalo_de_huacho", et:"🔵 Óvalo de Huacho"},
+  {id:"restaurante_pascual", et:"🍽️ Restaurante Pascual"},
+  {id:"puente_de_huahura", et:"🌉 Puente de Huahura"}
+ ]
+};
+
+// Mapeo de códigos de clima → emojis
+function obtenerEmojiClima(codigo){
+ // Documentación open-meteo weathercode
+ if(codigo === 0) return "☀️"; // despejado
+ if([1,2,3].includes(codigo)) return "⛅"; // parcial/nublado
+ if([45,48].includes(codigo)) return "🌫️"; // niebla
+ if([51,53,55].includes(codigo)) return "🌦️"; // llovizna
+ if([61,63,65].includes(codigo)) return "🌧️"; // lluvia
+ if([71,73,75].includes(codigo)) return "🌨️"; // nieve
+ if([77,80,81,82].includes(codigo)) return "🌦️"; // chubascos
+ if([85,86].includes(codigo)) return "❄️"; // aguanieve/nieve fuerte
+ if(codigo >= 95) return "⛈️"; // tormenta
+ return "🌤️"; // por defecto
+}
+
+async function cargarClima(){
+ try{
+  const res = await fetch(
+    "https://api.open-meteo.com/v1/forecast?latitude=-11.07&longitude=-77.62&current=temperature_2m,weather_code&timezone=America%2FLima"
+  );
+  const info = await res.json();
+  document.getElementById("temperatura").textContent = Math.round(info.current.temperature_2m) + " °C";
+  document.getElementById("icono-clima").textContent = obtenerEmojiClima(info.current.weather_code);
+ }catch(e){
+  document.getElementById("icono-clima").textContent = "🌡️";
+ }
+}
+
+function contarTodos(est){
+ let ops=0; const total=RUTAS_DEF.r1.length+RUTAS_DEF.r2.length;
+ for(let k in est) if(est[k]===1) ops++;
+ document.getElementById("libres").textContent=total-ops;
+ document.getElementById("operativos").textContent=ops;
+}
+
+function armarFila(punto,valor){
+ const fila=document.createElement("div");fila.className="fila";
+ fila.innerHTML=`
+  <div class="nombre-punto">${punto.et}</div>
+  <span class="etiqueta-valor"><span class="pin">📌</span>${valor}</span>
+  <div class="fila-botones">
+   <button class="boton libre ${valor===0?'activo':''}" onclick="cambiar('${punto.id}',0,this)">● LIBRE</button>
+   <button class="boton operativo ${valor===1?'activo':''}" onclick="cambiar('${punto.id}',1,this)">● OPERATIVO</button>
+  </div>
+ `;
+ return fila;
+}
+
+function dibujarTodo(estado){
+ document.getElementById("bloque1").innerHTML="";
+ document.getElementById("bloque2").innerHTML="";
+ RUTAS_DEF.r1.forEach(p=>document.getElementById("bloque1").appendChild(armarFila(p,estado[p.id]??0)));
+ RUTAS_DEF.r2.forEach(p=>document.getElementById("bloque2").appendChild(armarFila(p,estado[p.id]??0)));
+ contarTodos(estado);
+ document.getElementById("aviso").className="estado listo";
+ document.getElementById("aviso").textContent="✅ SINCRONIZADO — Listo para operar";
+}
+
+async function cambiar(clave,valor,boton){
+ const fila=boton.closest(".fila");
+ const todos=fila.querySelectorAll(".boton");
+ todos.forEach(b=>b.disabled=true);
+ document.getElementById("aviso").className="estado espera";document.getElementById("aviso").textContent="📤 Guardando…";
+ try{
+  const res=await fetch(URL_GUARDAR,{
+   method:"POST",headers:{"Content-Type":"application/json;charset=utf-8"},
+   body:JSON.stringify({id:clave,valor:valor})
+  });
+  if(!res.ok) throw new Error(`Servidor ${res.status}`);
+  dibujarTodo(await (await fetch(URL_DATOS+"?"+Date.now())).json());
+ }catch(e){
+  document.getElementById("aviso").className="estado falla";document.getElementById("aviso").textContent="❌ Revisa conexión";
+  console.error(e);
+ }finally{todos.forEach(b=>b.disabled=false);}
+}
+
+async function recargar(){
+ try{dibujarTodo(await (await fetch(URL_DATOS+"?"+Date.now())).json());}
+ catch(e){document.getElementById("aviso").className="estado falla";document.getElementById("aviso").textContent="📉 Sin conexión";}
+}
+
+document.addEventListener("DOMContentLoaded",()=>{
+ cargarClima();
+ recargar();
+ setInterval(recargar,REFRESCO);
+});
+
+
+
+
+
+
+
+// ==================================================
+// 🌡️ BLOQUE CLIMA COMPLETO Y SEGURO
+// ==================================================
+function codEmoji(c){
+  if(c===0)return"☀️";
+  if([1,2,3].includes(c))return"🌤️";
+  if([45,48].includes(c))return"☁️";
+  if([51,53,61,63,80,81,82].includes(c))return"🌦️";
+  if([71,73].includes(c))return"❄️";
+  if([95,96,99].includes(c))return"⛈️";
+  return"☀️";
+}
+
+async function cargarTodo(){
+  try{
+    let res=await fetch("https://api.open-meteo.com/v1/forecast?latitude=-11.109&longitude=-77.611&timezone=America/Lima&current=temperature_2m,weather_code&hourly=temperature_2m,weather_code");
+    let d=await res.json();
+
+    document.getElementById("temperatura").textContent=Math.round(d.current.temperature_2m)+" °C";
+    document.getElementById("icono-clima").textContent=codEmoji(d.current.weather_code);
+
+    let ahora=new Date();
+    let base=ahora.getHours();
+
+    for(let n=1;n<=5;n++){
+      let idx=base+n;
+      let elT=document.getElementById("t"+n);
+      let elI=document.getElementById("i"+n);
+      let elH=document.getElementById("h"+n);
+      if(!elT||!d.hourly.time[idx])continue;
+
+      let f=new Date(d.hourly.time[idx]);
+      let h=f.getHours().toString().padStart(2,"0");
+
+      elT.textContent=Math.round(d.hourly.temperature_2m[idx])+"°";
+      elI.textContent=codEmoji(d.hourly.weather_code[idx]);
+      elH.textContent=h+":00";
+    }
+
+  }catch(x){
+    console.error("FALLÓ CLIMA:",x);
+  }
+}
+
+cargarTodo();
+setInterval(cargarTodo,600000);
+
+
+
+
+
+
+window.addEventListener("load", () => {
+  const elem = document.getElementById("ubicacion-texto");
+
+  const configGPS = {
+    enableHighAccuracy: true,
+    maximumAge: 0,
+    timeout: 20000 // paciencia suficiente
+  };
+
+  async function traducir(pos) {
+    elem.textContent = "Identificando vía…"; // mensaje limpio
+
+    const lat = pos.coords.latitude;
+    const lon = pos.coords.longitude;
+
+    try {
+      // Servidor gratuito y confiable para Perú
+      const resp = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&zoom=16&addressdetails=1`,
+        { headers: { "Accept-Language": "es" } } // nombres en español
+      );
+      const datos = await resp.json();
+      const via = datos?.address?.road || datos?.address?.street;
+
+      if (via) {
+        elem.textContent = via; // ✅ SOLO NOMBRE DE CALLE / JIRÓN / AV
+      } else {
+        elem.textContent = "Vía sin nombre";
+      }
+    } catch {
+      elem.textContent = "Ubicación desconocida";
+    }
+  }
+
+  function errorGPS() {
+    elem.textContent = "Sin señal GPS";
+  }
+
+  navigator.geolocation.watchPosition(traducir, errorGPS, configGPS);
+});
+
+
+</script>
+</body>
+</html>
+

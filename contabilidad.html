@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Control Diario - Transporte Huacho</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', sans-serif;
+    }
+    html, body {
+      width: 100vw;
+      min-height: 100vh;
+      background: #0f1420;
+      color: #00e5ff;
+      padding: 12px;
+    }
+    h1, h2, h3 {
+      color: #00e5ff;
+      text-align: center;
+      font-weight: 900;
+      margin-bottom: 12px;
+    }
+    h1 { font-size: 1.5rem; }
+    h2 { font-size: 1.2rem; }
+
+    .caja {
+      background: #161c2e;
+      border: 2px solid #ffffff;
+      border-radius: 12px;
+      padding: 15px;
+      margin-bottom: 15px;
+      box-shadow: 0 0 8px rgba(0,229,255,0.15);
+    }
+
+    .fila {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin: 8px 0;
+      align-items: center;
+    }
+
+    input, select, button {
+      padding: 9px 12px;
+      border: 2px solid #ffffff;
+      border-radius: 8px;
+      font-size: 1rem;
+      background: #1e2540;
+      color: #00e5ff;
+      outline: none;
+    }
+    input::placeholder { color: #88aabb; }
+
+    button {
+      cursor: pointer;
+      font-weight: bold;
+      transition: all 0.2s;
+    }
+    button:hover {
+      background: #2a3560;
+      box-shadow: 0 0 6px #00e5ff;
+    }
+
+    .btn-ingreso { background: #006655; }
+    .btn-gasto  { background: #881122; }
+    .btn-cierre { background: #4422aa; width: 100%; margin-top: 6px; }
+    .btn-pequeño { padding: 5px 8px; font-size: 0.9rem; }
+    .btn-oculto { background: transparent; border: none; color: #00e5ff; padding: 2px 6px; }
+    .btn-eliminar { background: #aa2222; border: 1px solid white; padding: 3px 6px; font-size: 0.8rem; margin-left: 6px; }
+
+    .resumen {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      text-align: center;
+      font-weight: bold;
+      margin: 10px 0;
+    }
+    .resumen div {
+      padding: 10px;
+      border-radius: 8px;
+      background: #1e2540;
+      border: 1px solid #ffffff;
+    }
+
+    .lista {
+      margin-top: 10px;
+      max-height: 320px;
+      overflow-y: auto;
+    }
+    .item {
+      padding: 8px 12px;
+      margin: 5px 0;
+      border-radius: 6px;
+      background: #1e2540;
+      border-left: 4px solid;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .ingreso { border-color: #00ffcc; }
+    .gasto  { border-color: #ff6666; }
+    .cuenta-tag {
+      font-size: 0.8rem;
+      background: #2a3560;
+      padding: 2px 6px;
+      border-radius: 4px;
+      border: 1px solid white;
+    }
+
+    .cuenta-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 10px;
+      margin: 4px 0;
+      background: #1e2540;
+      border-radius: 6px;
+      border: 1px solid white;
+    }
+
+    .calc-ventana {
+      position: fixed;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      background: #161c2e;
+      border: 3px solid white;
+      border-radius: 12px;
+      padding: 15px;
+      z-index: 999;
+      box-shadow: 0 0 20px #00e5ff;
+    }
+    .calc-botones {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
+      margin-top: 8px;
+    }
+    .calc-botones button {
+      padding: 10px;
+      font-size: 1.1rem;
+    }
+    .calc-pantalla {
+      width: 100%;
+      padding: 8px;
+      text-align: right;
+      font-size: 1.3rem;
+      background: #0f1420;
+      border: 1px solid white;
+      margin-bottom: 8px;
+    }
+
+    .filtro {
+      text-align: right;
+      margin-bottom: 8px;
+    }
+    .filtro select {
+      max-width: 140px;
+    }
+
+    .pestañas {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 12px;
+    }
+    .pestaña {
+      flex: 1;
+      padding: 8px;
+      text-align: center;
+      border: 2px solid white;
+      border-radius: 8px 8px 0 0;
+      background: #1e2540;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    .pestaña.activa {
+      background: #2a3560;
+      border-bottom: 2px solid #2a3560;
+    }
+    .contenido-pestaña { display: none; }
+    .contenido-pestaña.activo { display: block; }
+
+    .oculto { display: none !important; }
+
+    .cierre-cuenta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 6px 8px;
+      margin: 4px 0;
+      background: #2a3560;
+      border-radius: 6px;
+      border: 1px solid white;
+    }
+    .cierre-cuenta input {
+      width: 110px;
+      text-align: right;
+    }
+  </style>
+</head>
+<body>
+
+<h1>📒 CONTROL DIARIO — TRANSPORTE HUACHO</h1>
+
+<div class="pestañas">
+  <div class="pestaña activa" onclick="cambiarPestaña('principal')">📊 Principal</div>
+  <div class="pestaña" onclick="cambiarPestaña('cuentas')">💰 Cuentas</div>
+</div>
+
+<!-- ====================================== -->
+<!-- ✅ PANTALLA PRINCIPAL                  -->
+<!-- ====================================== -->
+<div id="principal" class="contenido-pestaña activo">
+
+  <div class="caja">
+    <strong>💰 Saldo inicial del día — por cuenta:</strong>
+    <div id="saldoInicialLista"></div>
+    <small style="color:#88aabb;">✅ Viene automático del cierre del día anterior</small>
+  </div>
+
+  <div class="caja">
+    <h2>📝 Registrar movimiento</h2>
+    <div class="fila">
+      <label>Cuenta:</label>
+      <select id="cuentaSeleccionada"></select>
+    </div>
+    <div class="fila">
+      <label>Detalle:</label>
+      <input type="text" id="detalle" placeholder="Ej: Pasaje, gasolina, almuerzo...">
+    </div>
+    <div class="fila">
+      <label>Monto:</label>
+      <input type="number" id="monto" placeholder="0.00" step="0.10">
+      <button class="btn-pequeño" onclick="abrirCalculadora()">🧮</button>
+    </div>
+
+    <!-- ✅ POR DEFECTO EMPIEZA EN GASTO — LO QUE MÁS USAS -->
+    <div class="fila">
+      <button id="btnTipo" class="btn-gasto" onclick="cambiarTipo()">💸 GASTO</button>
+    </div>
+
+    <div class="fila">
+      <button class="btn-pequeño" onclick="limpiarFormulario()">🗑️ Limpiar</button>
+      <button class="btn-pequeño" onclick="guardarMovimiento()">✅ Guardar</button>
+    </div>
+    <small style="color:#88aabb;">📅 Fecha y hora automáticas — no se pueden modificar</small>
+  </div>
+
+  <div class="caja">
+    <h2>📊 Resumen del día</h2>
+    <div class="resumen">
+      <div>Ingresos<br><span id="totalIngresos">0.00</span></div>
+      <div>Gastos<br><span id="totalGastos">0.00</span></div>
+      <div>Ganancia<br><span id="ganancia">0.00</span></div>
+    </div>
+
+    <div style="margin-top:12px; padding:10px; background:#1e2540; border-radius:8px; border:1px solid white;">
+      <strong>🔒 Cierre del día — escribe cuánto tienes en cada cuenta:</strong>
+      <div id="formularioCierre"></div>
+      <button class="btn-cierre" onclick="cerrarDia()">✅ CERRAR DÍA Y GUARDAR</button>
+      <small style="color:#88aabb;">✅ Cada cuenta queda con su nuevo saldo para mañana</small>
+    </div>
+  </div>
+
+  <div class="caja">
+    <div class="filtro">
+      <label>Ver por:</label>
+      <select id="filtroTiempo" onchange="aplicarFiltro()">
+        <option value="diario" selected>📅 Diario</option>
+        <option value="semanal">📆 Semanal</option>
+        <option value="mensual">🗓️ Mensual</option>
+      </select>
+    </div>
+    <h2>📋 Lista de movimientos</h2>
+    <div id="listaMov" class="lista"></div>
+  </div>
+
+</div>
+
+<!-- ====================================== -->
+<!-- ✅ PANTALLA DE CUENTAS                  -->
+<!-- ====================================== -->
+<div id="cuentas" class="contenido-pestaña">
+  <div class="caja">
+    <h2>💰 Administrar Cuentas</h2>
+    <p style="font-size:0.9rem; color:#88aabb; margin-bottom:10px;">Empiezas con: Efectivo, Yape, Plin. Puedes agregar o eliminar.</p>
+    <div id="listaCuentas"></div>
+    <div class="fila" style="margin-top:12px;">
+      <input type="text" id="nuevaCuenta" placeholder="Nombre de cuenta nueva...">
+      <button onclick="agregarCuenta()">➕ Agregar</button>
+    </div>
+    <div style="margin-top:12px; padding:8px; background:#1e2540; border-radius:8px; border:1px solid white;">
+      <strong>💳 TOTAL GENERAL: </strong><span id="totalGeneral">0.00 soles</span>
+    </div>
+  </div>
+</div>
+
+<!-- ====================================== -->
+<!-- ✅ CALCULADORA                          -->
+<!-- ====================================== -->
+<div id="calculadora" class="calc-ventana oculto">
+  <input type="text" id="pantallaCalc" class="calc-pantalla" readonly>
+  <div class="calc-botones">
+    <button onclick="calcDigito('7')">7</button>
+    <button onclick="calcDigito('8')">8</button>
+    <button onclick="calcDigito('9')">9</button>
+    <button onclick="calcDigito('/')">/</button>
+    <button onclick="calcDigito('4')">4</button>
+    <button onclick="calcDigito('5')">5</button>
+    <button onclick="calcDigito('6')">6</button>
+    <button onclick="calcDigito('*')">×</button>
+    <button onclick="calcDigito('1')">1</button>
+    <button onclick="calcDigito('2')">2</button>
+    <button onclick="calcDigito('3')">3</button>
+    <button onclick="calcDigito('-')">-</button>
+    <button onclick="calcDigito('0')">0</button>
+    <button onclick="calcDigito('.')">.</button>
+    <button onclick="calcIgual()">=</button>
+    <button onclick="calcDigito('+')">+</button>
+    <button onclick="calcLimpiar()" style="grid-column: span 2;">🗑️ Borrar</button>
+    <button onclick="calcPegar()" style="grid-column: span 2;">✅ Usar resultado</button>
+  </div>
+  <button onclick="cerrarCalculadora()" style="width:100%; margin-top:8px;">❌ Cerrar</button>
+</div>
+
+
+<script>
+// ======================================
+// ✅ DATOS
+// ======================================
+let tipoOperacion = 'gasto'; // ✅ POR DEFECTO: GASTO — como pediste
+let movimientos = JSON.parse(localStorage.getItem('movimientos')) || [];
+
+let cuentas = JSON.parse(localStorage.getItem('cuentas')) || [
+  { id: 'efectivo', nombre: '💵 Efectivo', saldo: 0 },
+  { id: 'yape',    nombre: '💳 Yape',      saldo: 0 },
+  { id: 'plin',    nombre: '💳 Plin',       saldo: 0 }
+];
+
+let saldoInicialCuentas = cuentas.map(c => ({ id: c.id, saldo: c.saldo }));
+
+// ======================================
+// ✅ INICIO
+// ======================================
+actualizarSelectCuentas();
+actualizarListaCuentas();
+actualizarSaldoInicialVista();
+actualizarFormularioCierre();
+aplicarFiltro();
+
+// ======================================
+// ✅ PESTAÑAS
+// ======================================
+function cambiarPestaña(nombre){
+  document.querySelectorAll('.pestaña').forEach(p => p.classList.remove('activa'));
+  document.querySelectorAll('.contenido-pestaña').forEach(c => c.classList.remove('activo'));
+  event.target.classList.add('activa');
+  document.getElementById(nombre).classList.add('activo');
+}
+
+// ======================================
+// ✅ CUENTAS
+// ======================================
+function actualizarSelectCuentas(){
+  const sel = document.getElementById('cuentaSeleccionada');
+  sel.innerHTML = '';
+  cuentas.forEach(cuenta => {
+    const opt = document.createElement('option');
+    opt.value = cuenta.id;
+    opt.textContent = cuenta.nombre;
+    sel.appendChild(opt);
+  });
+}
+
+function actualizarListaCuentas(){
+  const lista = document.getElementById('listaCuentas');
+  lista.innerHTML = '';
+  cuentas.forEach((cuenta, indice) => {
+    const div = document.createElement('div');
+    div.className = 'cuenta-item';
+    div.innerHTML = `
+      <span><strong>${cuenta.nombre}</strong> — S/ ${cuenta.saldo.toFixed(2)}</span>
+      <button class="btn-oculto" onclick="eliminarCuenta(${indice})">⋮ Eliminar</button>
+    `;
+    lista.appendChild(div);
+  });
+  const total = cuentas.reduce((sum,c) => sum + c.saldo, 0);
+  document.getElementById('totalGeneral').textContent = total.toFixed(2) + ' soles';
+}
+
+function actualizarSaldoInicialVista(){
+  const lista = document.getElementById('saldoInicialLista');
+  lista.innerHTML = '';
+  saldoInicialCuentas.forEach(si => {
+    const cta = cuentas.find(c => c.id === si.id);
+    const div = document.createElement('div');
+    div.style.padding = '4px 0';
+    div.textContent = `${cta.nombre}: S/ ${si.saldo.toFixed(2)}`;
+    lista.appendChild(div);
+  });
+}
+
+function actualizarFormularioCierre(){
+  const form = document.getElementById('formularioCierre');
+  form.innerHTML = '';
+  cuentas.forEach(cuenta => {
+    const div = document.createElement('div');
+    div.className = 'cierre-cuenta';
+    div.innerHTML = `
+      <span>${cuenta.nombre}:</span>
+      <input type="number" id="cierre_${cuenta.id}" step="0.10" placeholder="0.00" value="${cuenta.saldo.toFixed(2)}">
+    `;
+    form.appendChild(div);
+  });
+}
+
+function agregarCuenta(){
+  const nombre = document.getElementById('nuevaCuenta').value.trim();
+  if(!nombre) return alert('Escribe el nombre de la cuenta');
+  cuentas.push({ id: 'cta_'+Date.now(), nombre: nombre, saldo: 0 });
+  guardarTodo();
+  actualizarSelectCuentas();
+  actualizarListaCuentas();
+  actualizarFormularioCierre();
+  saldoInicialCuentas = cuentas.map(c => ({ id: c.id, saldo: c.saldo }));
+  actualizarSaldoInicialVista();
+  document.getElementById('nuevaCuenta').value = '';
+}
+
+function eliminarCuenta(indice){
+  if(cuentas.length <= 1) return alert('Debes dejar al menos una cuenta');
+  if(!confirm(`¿Eliminar cuenta: ${cuentas[indice].nombre}?\nSu saldo pasa al total general.`)) return;
+  cuentas.splice(indice, 1);
+  guardarTodo();
+  actualizarSelectCuentas();
+  actualizarListaCuentas();
+  actualizarFormularioCierre();
+  saldoInicialCuentas = cuentas.map(c => ({ id: c.id, saldo: c.saldo }));
+  actualizarSaldoInicialVista();
+}
+
+function guardarTodo(){
+  localStorage.setItem('cuentas', JSON.stringify(cuentas));
+  localStorage.setItem('movimientos', JSON.stringify(movimientos));
+}
+
+// ======================================
+// ✅ CAMBIAR TIPO
+// ======================================
+function cambiarTipo(){
+  tipoOperacion = tipoOperacion === 'ingreso' ? 'gasto' : 'ingreso';
+  const btn = document.getElementById('btnTipo');
+  if(tipoOperacion === 'ingreso'){
+    btn.textContent = '💵 INGRESO';
+    btn.className = 'btn-ingreso';
+  } else {
+    btn.textContent = '💸 GASTO';
+    btn.className = 'btn-gasto';
+  }
+}
+
+// ======================================
+// ✅ CALCULADORA
+// ======================================
+function abrirCalculadora(){
+  document.getElementById('calculadora').classList.remove('oculto');
+  document.getElementById('pantallaCalc').value = '';
+}
+function cerrarCalculadora(){
+  document.getElementById('calculadora').classList.add('oculto');
+}
+function calcDigito(val){
+  document.getElementById('pantallaCalc').value += val;
+}
+function calcLimpiar(){
+  document.getElementById('pantallaCalc').value = '';
+}
+function calcIgual(){
+  try {
+    const res = eval(document.getElementById('pantallaCalc').value);
+    document.getElementById('pantallaCalc').value = res;
+  } catch {
+    alert('Operación incorrecta');
+  }
+}
+function calcPegar(){
+  const valor = parseFloat(document.getElementById('pantallaCalc').value) || 0;
+  document.getElementById('monto').value = valor.toFixed(2);
+  cerrarCalculadora();
+}
+
+// ======================================
+// ✅ GUARDAR MOVIMIENTO
+// ======================================
+function guardarMovimiento(){
+  const cuentaId = document.getElementById('cuentaSeleccionada').value;
+  const detalle  = document.getElementById('detalle').value.trim() || 'Sin detalle';
+  const monto    = parseFloat(document.getElementById('monto').value) || 0;
+  if(monto <= 0) return alert('Pon un monto mayor a cero');
+
+  const cuenta = cuentas.find(c => c.id === cuentaId);
+  if(tipoOperacion === 'ingreso') cuenta.saldo += monto;
+  else cuenta.saldo -= monto;
+
+  const nuevo = {
+    id: Date.now(),
+    fecha: new Date().toLocaleDateString('es-PE'),
+    hora: new Date().toLocaleTimeString('es-PE'),
+    tipo: tipoOperacion,
+    cuenta: cuentaId,
+    nombreCuenta: cuenta.nombre,
+    detalle: detalle,
+    monto: monto
+  };
+  movimientos.push(nuevo);
+  guardarTodo();
+
+  limpiarFormulario();
+  aplicarFiltro();
+  actualizarListaCuentas();
+  actualizarFormularioCierre();
+}
+
+// ======================================
+// ✅ ELIMINAR MOVIMIENTO — DEVUELVE EL SALDO A LA CUENTA
+// ======================================
+function eliminarMovimiento(idMov){
+  const indice = movimientos.findIndex(m => m.id === idMov);
+  if(indice === -1) return;
+  const mov = movimientos[indice];
+
+  if(!confirm(`¿Eliminar este registro?\n${mov.detalle}\nS/ ${mov.monto.toFixed(2)}\n✅ Se devolverá el saldo a la cuenta correspondiente`)) return;
+
+  // ✅ RECALCULA LA CUENTA: deshace el cambio que hizo
+  const cuenta = cuentas.find(c => c.id === mov.cuenta);
+  if(mov.tipo === 'ingreso'){
+    // Había sumado → ahora RESTAMOS
+    cuenta.saldo -= mov.monto;
+  } else {
+    // Había restado → ahora SUMAMOS
+    cuenta.saldo += mov.monto;
+  }
+
+  movimientos.splice(indice, 1);
+  guardarTodo();
+
+  aplicarFiltro();
+  actualizarListaCuentas();
+  actualizarFormularioCierre();
+}
+
+function limpiarFormulario(){
+  document.getElementById('detalle').value = '';
+  document.getElementById('monto').value = '';
+  tipoOperacion = 'gasto'; // ✅ VUELVE A GASTO POR DEFECTO
+  document.getElementById('btnTipo').textContent = '💸 GASTO';
+  document.getElementById('btnTipo').className = 'btn-gasto';
+}
+
+// ======================================
+// ✅ FILTRO Y LISTA
+// ======================================
+function aplicarFiltro(){
+  const modo = document.getElementById('filtroTiempo').value;
+  const hoy = new Date();
+  let filtrados = [];
+
+  if(modo === 'diario'){
+    const fechaHoy = hoy.toLocaleDateString('es-PE');
+    filtrados = movimientos.filter(m => m.fecha === fechaHoy);
+  } else if(modo === 'semanal'){
+    const unaSemana = new Date(hoy - 7*24*60*60*1000);
+    filtrados = movimientos.filter(m => new Date(m.fecha.split('/').reverse().join('-')) >= unaSemana);
+  } else {
+    const mesActual = hoy.getMonth() + 1;
+    const añoActual = hoy.getFullYear();
+    filtrados = movimientos.filter(m => {
+      const partes = m.fecha.split('/');
+      return partes[1] == mesActual && partes[2] == añoActual;
+    });
+  }
+
+  let totalIng = 0, totalGas = 0;
+  filtrados.forEach(m => {
+    if(m.tipo === 'ingreso') totalIng += m.monto;
+    else totalGas += m.monto;
+  });
+  const ganancia = totalIng - totalGas;
+
+  document.getElementById('totalIngresos').textContent = totalIng.toFixed(2);
+  document.getElementById('totalGastos').textContent = totalGas.toFixed(2);
+  document.getElementById('ganancia').textContent = ganancia.toFixed(2);
+
+  const lista = document.getElementById('listaMov');
+  lista.innerHTML = '';
+  if(filtrados.length === 0){
+    lista.innerHTML = '<p style="color:#88aabb; text-align:center;">Sin movimientos en este período</p>';
+    return;
+  }
+  filtrados.forEach(m => {
+    const div = document.createElement('div');
+    div.className = `item ${m.tipo}`;
+    div.innerHTML = `
+      <div>
+        <small>${m.fecha} ${m.hora}</small><br>
+        ${m.detalle}
+        <span class="cuenta-tag">${m.nombreCuenta}</span>
+      </div>
+      <div style="display:flex; align-items:center;">
+        <strong>S/ ${m.monto.toFixed(2)}</strong>
+        <button class="btn-eliminar" onclick="eliminarMovimiento(${m.id})">🗑️</button>
+      </div>
+    `;
+    lista.appendChild(div);
+  });
+}
+
+// ======================================
+// ✅ CIERRE DEL DÍA
+// ======================================
+function cerrarDia(){
+  const hoy = new Date().toLocaleDateString('es-PE');
+  let textoResumen = '📊 CIERRE DEL DÍA — ' + hoy + '\n\n';
+
+  cuentas.forEach(cuenta => {
+    const valorCierre = parseFloat(document.getElementById(`cierre_${cuenta.id}`).value) || 0;
+    const saldoInicial = saldoInicialCuentas.find(si => si.id === cuenta.id).saldo;
+    const saldoSegunMov = cuenta.saldo;
+    const diferencia = valorCierre - saldoSegunMov;
+
+    textoResumen += `${cuenta.nombre}:\n`;
+    textoResumen += `  • Inicio: S/ ${saldoInicial.toFixed(2)}\n`;
+    textoResumen += `  • Según movimientos: S/ ${saldoSegunMov.toFixed(2)}\n`;
+    textoResumen += `  • Real al contar: S/ ${valorCierre.toFixed(2)}\n`;
+    textoResumen += `  • Ajuste: S/ ${diferencia.toFixed(2)}\n\n`;
+
+    cuenta.saldo = valorCierre;
+  });
+
+  textoResumen += '✅ ¿Confirmar cierre? Estos saldos quedan para mañana.';
+  if(!confirm(textoResumen)) return;
+
+  guardarTodo();
+  saldoInicialCuentas = cuentas.map(c => ({ id: c.id, saldo: c.saldo }));
+  movimientos = [];
+  guardarTodo();
+
+  actualizarSaldoInicialVista();
+  actualizarListaCuentas();
+  actualizarFormularioCierre();
+  aplicarFiltro();
+
+  alert('✅ DÍA CERRADO CORRECTAMENTE.\nListo para mañana.');
+}
+
+</script>
+
+</body>
+</html>
+
