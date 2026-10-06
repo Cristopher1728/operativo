@@ -1,0 +1,823 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Hábito Alimenticio</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Courier New", Courier, monospace;
+        }
+        html, body {
+            background-color: #000;
+            color: #90EE90;
+            min-height: 100vh;
+            padding: 15px;
+        }
+        .contenedor {
+            max-width: 500px;
+            margin: 0 auto;
+        }
+        .titulo-principal {
+            text-align: center;
+            font-size: 1.8rem;
+            color: #90EE90;
+            margin-bottom: 25px;
+            font-weight: bold;
+            letter-spacing: 2px;
+        }
+        .caja {
+            border-radius: 16px;
+            padding: 18px;
+            margin-bottom: 25px;
+            background-color: #0a0f0a;
+        }
+        .caja-ayer {
+            border: 2px solid #F0FF42;
+        }
+        .caja-hoy {
+            border: 2px solid #90EE90;
+        }
+        .caja-contador {
+            border: 2px solid #2f4f2f;
+        }
+        .caja-registrar {
+            border: 2px solid #2f4f2f;
+        }
+        .caja-historial {
+            border: 2px solid #2f4f2f;
+        }
+        .titulo-caja {
+            font-size: 1.1rem;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+        .caja-ayer .titulo-caja {
+            color: #F0FF42;
+        }
+        .caja-hoy .titulo-caja {
+            color: #90EE90;
+        }
+        .comida-item {
+            background-color: #1a2f1a;
+            border-radius: 10px;
+            padding: 12px;
+            margin-bottom: 10px;
+        }
+        .comida-texto {
+            color: #fff;
+            font-size: 0.95rem;
+            margin-bottom: 4px;
+        }
+        .comida-hora {
+            color: #90EE90;
+            font-size: 0.85rem;
+            opacity: 0.8;
+        }
+        .contador-etiqueta {
+            font-size: 1.3rem;
+            color: #fff;
+            margin-bottom: 10px;
+        }
+        .contador-valor {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #F0FF42;
+        }
+        .registro-titulo {
+            font-size: 1.1rem;
+            margin-bottom: 15px;
+            color: #fff;
+        }
+        .fila-registro {
+            display: flex;
+            gap: 10px;
+            align-items: stretch;
+            flex-wrap: nowrap;
+        }
+        .input-comida {
+            flex: 1 1 auto;
+            min-width: 0;
+            background-color: #111;
+            border: 2px solid #333;
+            border-radius: 10px;
+            padding: 14px;
+            color: #90EE90;
+            font-size: 1rem;
+        }
+        .btn-guardar {
+            flex: 0 0 auto;
+            background-color: #F0FF42;
+            border: none;
+            border-radius: 10px;
+            padding: 14px 16px;
+            color: #000;
+            font-weight: bold;
+            font-size: 0.95rem;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+        .historial-titulo {
+            font-size: 1.1rem;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #F0FF42;
+        }
+        .historial-item {
+            background-color: #1a2f1a;
+            border-radius: 10px;
+            padding: 14px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .historial-datos {
+            flex: 1;
+            color: #fff;
+            min-width: 150px;
+        }
+        .historial-acciones {
+            display: flex;
+            gap: 8px;
+        }
+        .btn-editar {
+            background: none;
+            border: 1px solid #90EE90;
+            color: #90EE90;
+            border-radius: 6px;
+            padding: 6px 12px;
+            cursor: pointer;
+            font-size: 0.85rem;
+        }
+        .btn-eliminar {
+            background: none;
+            border: 1px solid #FF6347;
+            color: #FF6347;
+            border-radius: 6px;
+            padding: 6px 12px;
+            cursor: pointer;
+            font-size: 0.85rem;
+        }
+        .sin-datos {
+            color: #555;
+            font-style: italic;
+            padding: 10px 0;
+        }
+        .editar-fila {
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid #333;
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            width: 100%;
+        }
+        .editar-input {
+            flex: 1;
+            min-width: 150px;
+            background-color: #111;
+            border: 1px solid #90EE90;
+            border-radius: 6px;
+            padding: 8px;
+            color: #90EE90;
+        }
+        .btn-confirmar {
+            background-color: #90EE90;
+            color: #000;
+            border: none;
+            border-radius: 6px;
+            padding: 8px 12px;
+            cursor: pointer;
+        }
+        .btn-cancelar {
+            background-color: #444;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            padding: 8px 12px;
+            cursor: pointer;
+        }
+        @media (max-width: 360px) {
+            .input-comida {
+                font-size: 0.9rem;
+                padding: 12px;
+            }
+            .btn-guardar {
+                font-size: 0.85rem;
+                padding: 12px 14px;
+            }
+        }
+    </style>
+</bbox>
+</head>
+<body>
+    <div class="contenedor">
+        <h1 class="titulo-principal">Hábito Alimenticio</h1>
+
+        <!-- ALIMENTOS DE AYER -->
+        <div class="caja caja-ayer">
+            <h3 class="titulo-caja">Alimentos de ayer</h3>
+            <div id="listaAyer">
+                <div class="sin-datos">Sin registros</div>
+            </div>
+        </div>
+
+        <!-- ALIMENTOS DE HOY -->
+        <div class="caja caja-hoy">
+            <h3 class="titulo-caja">Alimentos de hoy</h3>
+            <div id="listaHoy">
+                <div class="sin-datos">Sin registros</div>
+            </div>
+        </div>
+
+        <!-- CONTADOR -->
+        <div class="caja caja-contador">
+            <div class="contador-etiqueta">Horas desde la última comida:</div>
+            <div classcontador-valor id="contadorHoras">Sin registros</div>
+        </div>
+
+        <!-- REGISTRAR NUEVA COMIDA -->
+        <div class="caja caja-registrar">
+            <h3 class="registro-titulo">Registrar nueva comida</h3>
+            <div class="fila-registro">
+                <input type="text" id="inputComida" class="input-comida" placeholder="¿Qué comiste?">
+                <button id="btnGuardar" class="btn-guardar">Guardar hora</button>
+            </div>
+        </div>
+
+        <!-- HISTORIAL -->
+        <div class="caja caja-historial">
+            <h3 class="historial-titulo">Historial</h3>
+            <div id="listaHistorial">
+                <div,
+
+sin registros
+```html
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Hábito Alimenticio</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Courier New", Courier, monospace;
+        }
+        html, body {
+            background-color: #000;
+            color: #90EE90;
+            min-height: 100vh;
+            padding: 15px;
+        }
+        .contenedor {
+            max-width: 500px;
+            margin: 0 auto;
+        }
+        .titulo-principal {
+            text-align: center;
+            font-size: 1.8rem;
+            color: #90EE90;
+            margin-bottom: 25px;
+            font-weight: bold;
+            letter-spacing: 2px;
+        }
+        .caja {
+            border-radius: 16px;
+            padding: 18px;
+            margin-bottom: 25px;
+            background-color: #0a0f0a;
+        }
+        .caja-ayer {
+            border: 2px solid #F0FF42;
+        }
+        .caja-hoy {
+            border: 2px solid #90EE90;
+        }
+        .caja-contador {
+            border: 2px solid #2f4f2f;
+        }
+        .caja-registrar {
+            border: 2px solid #2f4f2f;
+        }
+        .caja-historial {
+            border: 2px solid #2f4f2f;
+        }
+        .titulo-caja {
+            font-size: 1.1rem;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+        .caja-ayer .titulo-caja {
+            color: #F0FF42;
+        }
+        .caja-hoy .titulo-caja {
+            color: #90EE90;
+        }
+        .comida-item {
+            background-color: #1a2f1a;
+            border-radius: 10px;
+            padding: 12px;
+            margin-bottom: 10px;
+        }
+        .comida-texto {
+            color: #fff;
+            font-size: 0.95rem;
+            margin-bottom: 4px;
+        }
+        .comida-hora {
+            color: #90EE90;
+            font-size: 0.85rem;
+            opacity: 0.8;
+        }
+        .contador-etiqueta {
+            font-size: 1.3rem;
+            color: #fff;
+            margin-bottom: 10px;
+        }
+        .contador-valor {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #F0FF42;
+        }
+        .registro-titulo {
+            font-size: 1.1rem;
+            margin-bottom: 15px;
+            color: #fff;
+        }
+        .fila-registro {
+            display: flex;
+            gap: 10px;
+            align-items: stretch;
+            flex-wrap: nowrap;
+        }
+        .input-comida {
+            flex: 1 1 auto;
+            min-width: 0;
+            background-color: #111;
+            border: 2px solid #333;
+            border-radius: 10px;
+            padding: 14px;
+            color: #90EE90;
+            font-size: 1rem;
+        }
+        .btn-guardar {
+            flex: 0 0 auto;
+            background-color: #F0FF42;
+            border: none;
+            border-radius: 10px;
+            padding: 14px 16px;
+            color: #000;
+            font-weight: bold;
+            font-size: 0.95rem;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+        .historial-titulo {
+            font-size: 1.1rem;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #F0FF42;
+        }
+        .historial-item {
+            background-color: #1a2f1a;
+            border-radius: 10px;
+            padding: 14px;
+            margin: 10px 0;
+            display:<[SILENT_never_used_51bce0c785ca2f68081bfa7d91973934]>
+
+Veo que se cortó el código, pe. Aquí te lo dejo completo y bien cerrado, listo para copiar directamente en tu archivo `comida.html`:
+
+```html
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Hábito Alimenticio</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Courier New", Courier, monospace;
+        }
+        html, body {
+            background-color: #000;
+            color: #90EE90;
+            min-height: 100vh;
+            padding: 15px;
+        }
+        .contenedor {
+            max-width: 500px;
+            margin: 0 auto;
+        }
+        .titulo-principal {
+            text-align: center;
+            font-size: 1.8rem;
+            color: #90EE90;
+            margin-bottom: 25px;
+            font-weight: bold;
+            letter-spacing: 2px;
+        }
+        .caja {
+            border-radius: 16px;
+            padding: 18px;
+            margin-bottom: 25px;
+            background-color: #0a0f0a;
+        }
+        .caja-ayer {
+            border: 2px solid #F0FF42;
+        }
+        .caja-hoy {
+            border: 2px solid #90EE90;
+        }
+        .caja-contador {
+            border: 2px solid #2f4f2f;
+        }
+        .caja-registrar {
+            border: 2px solid #2f4f2f;
+        }
+        .caja-historial {
+            border: 2px solid #2f4f2f;
+        }
+        .titulo-caja {
+            font-size: 1.1rem;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+        .caja-ayer .titulo-caja {
+            color: #F0FF42;
+        }
+        .caja-hoy .titulo-caja {
+            color: #90EE90;
+        }
+        .comida-item {
+            background-color: #1a2f1a;
+            border-radius: 10px;
+            padding: 12px;
+            margin-bottom: 10px;
+        }
+        .comida-texto {
+            color: #fff;
+            font-size: 0.95rem;
+            margin-bottom: 4px;
+        }
+        .comida-hora {
+            color: #90EE90;
+            font-size: 0.85rem;
+            opacity: 0.8;
+        }
+        .contador-etiqueta {
+            font-size: 1.3rem;
+            color: #fff;
+            margin-bottom: 10px;
+        }
+        .contador-valor {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #F0FF42;
+        }
+        .registro-titulo {
+            font-size: 1.1rem;
+            margin-bottom: 15px;
+            color: #fff;
+        }
+        .fila-registro {
+            display: flex;
+            gap: 10px;
+            align-items: stretch;
+            flex-wrap: nowrap;
+        }
+        .input-comida {
+            flex: 1 1 auto;
+            min-width: 0;
+            background-color: #111;
+            border: 2px solid #333;
+            border-radius: 10px;
+            padding: 14px;
+            color: #90EE90;
+            font-size: 1rem;
+        }
+        .btn-guardar {
+            flex: 0 0 auto;
+            background-color: #F0FF42;
+            border: none;
+            border-radius: 10px;
+            padding: 14px 16px;
+            color: #000;
+            font-weight: bold;
+            font-size: 0.95rem;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+        .historial-titulo {
+            font-size: 1.1rem;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #F0FF42;
+        }
+        .historial-item {
+            background-color: #1a2f1a;
+            border-radius: 10px;
+            padding: 14px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .historial-datos {
+            flex: 1;
+            color: #fff;
+            min-width: 150px;
+        }
+        .historial-acciones {
+            display: flex;
+            gap: 8px;
+        }
+        .btn-editar {
+            background: none;
+            border: 1px solid #90EE90;
+            color: #90EE90;
+            border-radius: 6px;
+            padding: 6px 12px;
+            cursor: pointer;
+            font-size: 0.85rem;
+        }
+        .btn-eliminar {
+            background: none;
+            border: 1px solid #FF6347;
+            color: #FF6347;
+            border-radius: 6px;
+            padding: 6px 12px;
+            cursor: pointer;
+            font-size: 0.85rem;
+        }
+        .sin-datos {
+            color: #555;
+            font-style: italic;
+            padding: 10px 0;
+        }
+        .editar-fila {
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid #333;
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            width: 100%;
+        }
+        .editar-input {
+            flex: 1;
+            min-width: 150px;
+            background-color: #111;
+            border: 1px solid #90EE90;
+            border-radius: 6px;
+            padding: 8px;
+            color: #90EE90;
+        }
+        .btn-confirmar {
+            background-color: #90EE90;
+            color: #000;
+            border: none;
+            border-radius: 6px;
+            padding: 8px 12px;
+            cursor: pointer;
+        }
+        .btn-cancelar {
+            background-color: #444;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            padding: 8px 12px;
+            cursor: pointer;
+        }
+        @media (max-width: 360px) {
+            .input-comida {
+                font-size: 0.9rem;
+                padding: 12px;
+            }
+            .btn-guardar {
+                font-size: 0.85rem;
+                padding: 12px 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="contenedor">
+        <h1 class="titulo-principal">Hábito Alimenticio</h1>
+
+        <!-- ALIMENTOS DE AYER -->
+        <div class="caja caja-ayer">
+            <h3 class="titulo-caja">Alimentos de ayer</h3>
+            <div id="listaAyer">
+                <div class="sin-datos">Sin registros</div>
+            </div>
+        </div>
+
+        <!-- ALIMENTOS DE HOY -->
+        <div class="caja caja-hoy">
+            <h3 class="titulo-caja">Alimentos de hoy</h3>
+            <div id="listaHoy">
+                <div class="sin-datos">Sin registros</div>
+            </div>
+        </div>
+
+        <!-- CONTADOR -->
+        <div class="caja caja-contador">
+            <div class="contador-etiqueta">Horas desde la última comida:</div>
+            <div class="contador-valor" id="contadorHoras">Sin registros</div>
+        </div>
+
+        <!-- REGISTRAR NUEVA COMIDA -->
+        <div class="caja caja-registrar">
+            <h3 class="registro-titulo">Registrar nueva comida</h3>
+            <div class="fila-registro">
+                <input type="text" id="inputComida" class="input-comida" placeholder="¿Qué comiste?">
+                <button id="btnGuardar" class="btn-guardar">Guardar hora</button>
+            </div>
+        </div>
+
+        <!-- HISTORIAL -->
+        <div class="caja caja-historial">
+            <h3 class="historial-titulo">Historial</h3>
+            <div id="listaHistorial">
+                <div class="sin-datos">Sin registros</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let comidas = [];
+        let editandoId = null;
+
+        function cargarDatos() {
+            const guardado = localStorage.getItem('habito_comidas');
+            if (guardado) {
+                comidas = JSON.parse(guardado);
+            }
+            renderizarTodo();
+            iniciarContador();
+        }
+
+        function guardarDatos() {
+            localStorage.setItem('habito_comidas', JSON.stringify(comidas));
+            renderizarTodo();
+        }
+
+        function fechaHoy() {
+            return new Date().toISOString().split('T')[0];
+        }
+
+        function fechaAyer() {
+            const d = new Date();
+            d.setDate(d.getDate() - 1);
+            return d.toISOString().split('T')[0];
+        }
+
+        function horaFormateada(fecha) {
+            return fecha.toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' });
+        }
+
+        function agregarComida() {
+            const texto = document.getElementById('inputComida').value.trim();
+            if (!texto) {
+                alert('Escribe qué comiste');
+                return;
+            }
+            const nueva = {
+                id: Date.now(),
+                texto: texto,
+                fecha: fechaHoy(),
+                horaCompleta: new Date().toISOString()
+            };
+            comidas.push(nueva);
+            document.getElementById('inputComida').value = '';
+            guardarDatos();
+        }
+
+        function eliminarComida(id) {
+            if (!confirm('¿Eliminar este registro?')) return;
+            comidas = comidas.filter(c => c.id !== id);
+            guardarDatos();
+        }
+
+        function iniciarEdicion(id) {
+            editandoId = id;
+            renderizarTodo();
+        }
+
+        function confirmarEdicion(id) {
+            const nuevoTexto = document.getElementById(`editar-input-${id}`).value.trim();
+            if (!nuevoTexto) return;
+            const comida = comidas.find(c => c.id === id);
+            if (comida) comida.texto = nuevoTexto;
+            editandoId = null;
+            guardarDatos();
+        }
+
+        function cancelarEdicion() {
+            editandoId = null;
+            renderizarTodo();
+        }
+
+        function ultimaComidaFecha() {
+            if (comidas.length === 0) return null;
+            const ultima = comidas[comidas.length - 1];
+            return new Date(ultima.horaCompleta);
+        }
+
+        function actualizarContador() {
+            const ultima = ultimaComidaFecha();
+            if (!ultima) {
+                document.getElementById('contadorHoras').textContent = 'Sin registros';
+                return;
+            }
+            const ahora = new Date();
+            const difMs = ahora - ultima;
+            const horas = Math.floor(difMs / (1000 * 60 * 60));
+            const minutos = Math.floor((difMs % (1000 * 60 * 60)) / (1000 * 60));
+            document.getElementById('contadorHoras').textContent = `${horas} horas ${minutos} minutos`;
+        }
+
+        function iniciarContador() {
+            actualizarContador();
+            setInterval(actualizarContador, 60000);
+        }
+
+        function renderizarLista(elementoId, lista, mostrarFechaEnHistorial = false) {
+            const contenedor = document.getElementById(elementoId);
+            if (lista.length === 0) {
+                contenedor.innerHTML = '<div class="sin-datos">Sin registros</div>';
+                return;
+            }
+            contenedor.innerHTML = lista.map((item, idx) => {
+                const fechaObj = new Date(item.horaCompleta);
+                const horaStr = horaFormateada(fechaObj);
+                const mostrarFecha = mostrarFechaEnHistorial 
+                    ? `${fechaObj.toLocaleDateString('es-PE')} — ` 
+                    : '';
+                const esEditando = editandoId === item.id;
+
+                if (elementoId === 'listaHistorial') {
+                    return `
+                        <div class="historial-item">
+                            <div class="historial-datos">
+                                ${mostrarFecha}${item.texto}<br>
+                                <small style="color:#999">${horaStr}</small>
+                            </div>
+                            <div class="historial-acciones">
+                                ${esEditando ? `
+                                    <div class="editar-fila">
+                                        <input type="text" id="editar-input-${item.id}" class="editar-input" value="${item.texto}">
+                                        <button class="btn-confirmar" onclick="confirmarEdicion(${item.id})">✓</button>
+                                        <button class="btn-cancelar" onclick="cancelarEdicion()">✕</button>
+                                    </div>
+                                ` : `
+                                    <button class="btn-editar" onclick="iniciarEdicion(${item.id})">Editar</button>
+                                    <button class="btn-eliminar" onclick="eliminarComida(${item.id})">Eliminar</button>
+                                `}
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    return `
+                        <div class="comida-item">
+                            <div class="comida-texto">${idx + 1}. ${item.texto}</div>
+                            <div class="comida-hora">${horaStr}</div>
+                        </div>
+                    `;
+                }
+            }).join('');
+        }
+
+        function renderizarTodo() {
+            const ayer = comidas.filter(c => c.fecha === fechaAyer());
+            const hoy = comidas.filter(c => c.fecha === fechaHoy());
+            renderizarLista('listaAyer', ayer);
+            renderizarLista('listaHoy', hoy);
+            renderizarLista('listaHistorial', [...comidas].reverse(), true);
+            actualizarContador();
+        }
+
+        document.getElementById('btnGuardar').addEventListener('click', agregarComida);
+        document.getElementById('inputComida').addEventListener('keypress', e => {
+            if (e.key === 'Enter') agregarComida();
+        });
+
+        cargarDatos();
+    </script>
+</body>
+</html>
+

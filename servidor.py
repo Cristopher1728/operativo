@@ -125,12 +125,12 @@ class ServidorDefinitivo(BaseHTTPRequestHandler):
         self._cabecera()
 
 def arrancar(p=8080):
-    print("\n✅ HUACHO: SERVIDOR COMPLETO — ¡SIRVE TODOS LOS ARCHIVOS!")
+    print("\n✅ TUMIOS: SERVIDOR COMPLETO — ¡SIRVE TODOS LOS ARCHIVOS!")
     print(f"📂 Carpeta: {os.getcwd()}")
     archivos = [f for f in os.listdir(".") if f.endswith(".html")]
     print(f"📄 Archivos HTML disponibles: {', '.join(archivos)}")
-    print(f"🌐 Principal: https://huacho-taxi.serveousercontent.com/")
-    print(f"🚗 Velocímetro: https://huacho-taxi.serveousercontent.com/velocidad.html")
+    print(f"🌐 Principal: https://tumios.serveousercontent.com/")
+    print(f"🚗 Velocímetro: https://tumios.serveousercontent.com/velocidad.html")
     print("-" * 60)
     HTTPServer(("0.0.0.0", p), ServidorDefinitivo).serve_forever()
 

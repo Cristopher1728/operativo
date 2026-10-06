@@ -4,7 +4,7 @@ clear
 cd "$HOME/Operativo" || { echo "❌ Carpeta no hallada"; exit 1; }
 
 # ⚙️ CONFIGURACIÓN QUE YA ES NUESTRA:
-NOMBRE="huacho-taxi"
+NOMBRE="tumios"
 CLAVE_SSH="./serveo_clave"
 ARCHIVO_LOG="tiempo_tunel.log"
 
