@@ -388,15 +388,7 @@
                 return;
             }
 
-            if (tipo === 'gasto') {
-                if (metodo === 'efectivo' && monto > saldoEfectivo) {
-                    alert('No hay suficiente saldo en efectivo');
-                    return;
-                }
-                if (metodo === 'plin' && monto > saldoPlin) {
-                    alert('No hay suficiente saldo en Plin/Yape');
-                    return;
-                }
+
                 if (metodo === 'efectivo') saldoEfectivo -= monto;
                 else saldoPlin -= monto;
             } else {
