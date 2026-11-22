@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Tumidoku</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Arial, sans-serif; }
+        body {
+            background: linear-gradient(135deg, #0a1929 0%, #1a3a5c 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 10px;
+            color: #fff;
+        }
+        h1 {
+            font-size: clamp(1.8rem, 6vw, 2.5rem);
+            color: #00e5ff;
+            text-shadow: 0 0 10px #00e5ff, 0 0 20px #00e5ff70;
+            margin: 0 0 8px;
+            letter-spacing: 4px;
+        }
+        .barra-superior {
+            width: min(540px, 95vw);
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            flex-wrap: wrap;
+            gap: 6px;
+            padding: 10px 15px;
+            background: rgba(0, 229, 255, 0.1);
+            border: 2px solid #00e5ff;
+            border-radius: 10px;
+            margin-bottom: 8px;
+        }
+        .fecha-hora { font-size: clamp(0.8rem, 2.8vw, 0.95rem); color: #b3f0ff; line-height: 1.5; }
+        .nivel-info { text-align: right; }
+        .nivel { font-size: clamp(0.85rem, 3vw, 1rem); font-weight: bold; }
+        .nivel.facil { color: #8f8; }
+        .nivel.medio { color: #ff8; }
+        .nivel.dificil { color: #fa6; }
+        .nivel.muy-dificil { color: #f66; }
+        .nivel.experto { color: #c6f; }
+        .porcentaje { font-size: clamp(0.75rem, 2.8vw, 0.9rem); color: #b3f0ff; }
+        .temporizador {
+            width: min(540px, 95vw);
+            text-align: center;
+            font-size: clamp(1rem, 4vw, 1.25rem);
+            color: #ff6;
+            font-weight: bold;
+            padding: 6px;
+            margin-bottom: 8px;
+            background: rgba(255,255,0,0.08);
+            border-radius: 8px;
+            border: 1px solid #ff6660;
+        }
+        .contenedor {
+            background: rgba(0,20,40,0.85);
+            padding: clamp(8px, 2vw, 12px);
+            border-radius: 15px;
+            border: 3px solid #00e5ff;
+        }
+        .tablero {
+            display: grid;
+            grid-template-columns: repeat(9, 1fr);
+            width: min(504px, 90vw);
+            height: min(504px, 90vw);
+            border: 3px solid #00e5ff;
+        }
+        .celda {
+            border: 1px solid #0889;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: clamp(1rem, 4.5vw, 1.6rem);
+            color: #fff;
+            background: #0a2a3a;
+            cursor: pointer;
+        }
+        .celda.resaltado-fila, .celda.resaltado-col { background: #440; }
+        .celda.seleccionada { background: #660; }
+        .celda.fija { background: #045; color: #0ff; font-weight: bold; }
+        .celda:nth-child(3n) { border-right: 3px solid #00e5ff; }
+        .celda:nth-child(9n+1) { border-left: 3px solid #00e5ff; }
+        .celda:nth-child(n+19):nth-child(-n+27),
+        .celda:nth-child(n+46):nth-child(-n+54) { border-bottom: 3px solid #00e5ff; }
+        .celda:nth-child(n+1):nth-child(-n+9) { border-top: 3px solid #00e5ff; }
+        .mensaje {
+            margin: 4px 0;
+            font-size: clamp(0.9rem, 3.5vw, 1.1rem);
+            color: #0ff;
+            min-height: 24px;
+            text-align: center;
+            padding: 0 10px;
+        }
+        .botones {
+            margin: 4px 0 6px;
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        button {
+            padding: 10px 16px;
+            font-size: clamp(0.85rem, 3vw, 0.95rem);
+            background: linear-gradient(135deg, #0ab, #0ef);
+            color: #011;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        button:active { transform: scale(0.97); }
+        .numeros {
+            margin-top: 4px;
+            display: grid;
+            grid-template-columns: repeat(9, 1fr);
+            width: min(504px, 90vw);
+            gap: 4px;
+        }
+        .num-btn { padding: 8px 0; font-size: clamp(1rem, 4vw, 1.3rem); }
+    </style>
+</head>
+<body>
+
+    <h1>TUMIDOKU</h1>
+
+    <div class="barra-superior">
+        <div class="fecha-hora" id="fechaHora"></div>
+        <div class="nivel-info">
+            <div class="nivel facil" id="nivelTexto">Nivel 1 — Fácil</div>
+            <div class="porcentaje" id="porcentaje">Completado: 0%</div>
+        </div>
+    </div>
+
+    <div class="temporizador" id="temporizador">⏱️ 00:00:00</div>
+
+    <div class="contenedor">
+        <div class="tablero" id="tablero"></div>
+    </div>
+
+    <div class="mensaje" id="mensaje"></div>
+
+    <div class="botones">
+        <button onclick="nuevaPartida()">🔄 Nueva Partida</button>
+        <button onclick="ponerPista()">💡 Pista</button>
+        <button onclick="borrarCelda()">❌ Borrar</button>
+    </div>
+
+    <div class="numeros" id="tecladoNumeros"></div>
+
+<script>
+let tablero = [];
+let solucion = [];
+let fijas = [];
+let filaSel = -1;
+let colSel = -1;
+let tiempoInicio = null;
+let intervaloTiempo = null;
+let nivelActual = 1;
+const NIVEL_MAXIMO = 20;
+
+function getConfigNivel(nivel) {
+    let nombre, clase, quitadas;
+    if (nivel <= 3) {
+        nombre = 'Fácil'; clase = 'facil';
+        quitadas = 35 + nivel;
+    } else if (nivel <= 6) {
+        nombre = 'Medio'; clase = 'medio';
+        quitadas = 40 + (nivel - 3) * 3;
+    } else if (nivel <= 9) {
+        nombre = 'Difícil'; clase = 'dificil';
+        quitadas = 52 + (nivel - 6) * 2;
+    } else if (nivel <= 15) {
+        nombre = 'Muy difícil'; clase = 'muy-dificil';
+        quitadas = 64 + (nivel - 9);
+    } else {
+        nombre = 'Experto'; clase = 'experto';
+        quitadas = Math.min(72, 70 + (nivel - 15));
+    }
+    return { nombre, clase, quitadas };
+}
+
+function actualizarFechaHora() {
+    const ahora = new Date();
+    const fecha = ahora.toLocaleDateString('es-ES', {day:'2-digit', month:'long', year:'numeric'});
+    const hora = ahora.toLocaleTimeString('es-ES', {hour:'2-digit', minute:'2-digit', hour12:true});
+    document.getElementById('fechaHora').innerHTML = fecha + '<br>' + hora;
+}
+
+function actualizarNivel() {
+    const c = getConfigNivel(nivelActual);
+    const el = document.getElementById('nivelTexto');
+    el.textContent = `Nivel ${nivelActual} — ${c.nombre}`;
+    el.className = `nivel ${c.clase}`;
+}
+
+function formatearTiempo(s) {
+    const h = Math.floor(s/3600), m = Math.floor((s%3600)/60), se = s%60;
+    return String(h).padStart(2,'0') + ':' + String(m).padStart(2,'0') + ':' + String(se).padStart(2,'0');
+}
+
+function actualizarTemporizador() {
+    if (!tiempoInicio) return;
+    document.getElementById('temporizador').textContent = '⏱️ ' + formatearTiempo(Math.floor((Date.now()-tiempoInicio)/1000));
+}
+
+function iniciarTemporizador() {
+    tiempoInicio = Date.now();
+    if (intervaloTiempo) clearInterval(intervaloTiempo);
+    intervaloTiempo = setInterval(actualizarTemporizador, 1000);
+}
+
+function detenerTemporizador() {
+    if (intervaloTiempo) { clearInterval(intervaloTiempo); intervaloTiempo = null; }
+}
+
+function calcularPorcentaje() {
+    let llenas = 0;
+    for (let f=0;f<9;f++) for (let c=0;c<9;c++) if (tablero[f][c]!==0) llenas++;
+    const pct = Math.round((llenas/81)*100);
+    document.getElementById('porcentaje').textContent = 'Completado: ' + pct + '%';
+    return pct;
+}
+
+function generarSolucion() {
+    solucion = Array.from({length:9}, () => Array(9).fill(0));
+    llenarCuadricula(solucion);
+}
+
+function llenarCuadricula(g) {
+    const v = buscarVacio(g);
+    if (!v) return true;
+    const [f,c] = v;
+    const nums = [1,2,3,4,5,6,7,8,9].sort(() => Math.random()-0.5);
+    for (let n of nums) {
+        if (esValido(g,f,c,n)) {
+            g[f][c]=n;
+            if (llenarCuadricula(g)) return true;
+            g[f][c]=0;
+        }
+    }
+    return false;
+}
+
+function buscarVacio(g) {
+    for (let f=0;f<9;f++) for (let c=0;c<9;c++) if (g[f][c]===0) return [f,c];
+    return null;
+}
+
+function esValido(g,f,c,n) {
+    for (let x=0;x<9;x++) if (g[f][x]===n) return false;
+    for (let y=0;y<9;y++) if (g[y][c]===n) return false;
+    const bf=Math.floor(f/3)*3, bc=Math.floor(c/3)*3;
+    for (let y=0;y<3;y++) for (let x=0;x<3;x++) if (g[bf+y][bc+x]===n) return false;
+    return true;
+}
+
+function nuevaPartida() {
+    generarSolucion();
+    tablero = solucion.map(r => [...r]);
+    fijas = Array.from({length:9}, () => Array(9).fill(false));
+    const q = getConfigNivel(nivelActual).quitadas;
+    let cnt=0;
+    while (cnt<q) {
+        const f=Math.floor(Math.random()*9), c=Math.floor(Math.random()*9);
+        if (tablero[f][c]!==0) { tablero[f][c]=0; cnt++; }
+    }
+    for (let f=0;f<9;f++) for (let c=0;c<9;c++) if (tablero[f][c]!==0) fijas[f][c]=true;
+    filaSel=-1; colSel=-1;
+    document.getElementById('mensaje').textContent='';
+    actualizarNivel();
+    dibujarTablero();
+    calcularPorcentaje();
+    iniciarTemporizador();
+}
+
+function dibujarTablero() {
+    const div = document.getElementById('tablero');
+    div.innerHTML='';
+    for (let f=0;f<9;f++) {
+        for (let c=0;c<9;c++) {
+            const cel = document.createElement('div');
+            cel.className='celda';
+            if (filaSel!==-1) {
+                if (f===filaSel && c===colSel) cel.classList.add('seleccionada');
+                else if (f===filaSel) cel.classList.add('resaltado-fila');
+                else if (c===colSel) cel.classList.add('resaltado-col');
+            }
+            if (fijas[f][c]) cel.classList.add('fija');
+            cel.textContent = tablero[f][c] || '';
+            cel.onclick = () => seleccionarCelda(f,c);
+            div.appendChild(cel);
+        }
+    }
+    dibujarTeclado();
+}
+
+function dibujarTeclado() {
+    const div = document.getElementById('tecladoNumeros');
+    div.innerHTML='';
+    for (let n=1;n<=9;n++) {
+        const btn = document.createElement('button');
+        btn.className='num-btn';
+        btn.textContent=n;
+        btn.onclick = () => ponerNumero(n);
+        div.appendChild(btn);
+    }
+}
+
+function seleccionarCelda(f,c) {
+    if (fijas[f][c]) {
+        document.getElementById('mensaje').textContent='Es fijo, no se puede cambiar';
+        setTimeout(()=>document.getElementById('mensaje').textContent='',2500);
+        return;
+    }
+    filaSel=f; colSel=c;
+    dibujarTablero();
+}
+
+function ponerNumero(n) {
+    if (filaSel===-1 || colSel===-1) {
+        document.getElementById('mensaje').textContent='Primero toca una casilla';
+        setTimeout(()=>document.getElementById('mensaje').textContent='',2500);
+        return;
+    }
+    if (solucion[filaSel][colSel]===n) {
+        tablero[filaSel][colSel]=n;
+        document.getElementById('mensaje').textContent='✓ ¡Bien!';
+        setTimeout(()=>document.getElementById('mensaje').textContent='',1500);
+    } else {
+        document.getElementById('mensaje').textContent='✖ ' + n + ' no va aquí';
+        setTimeout(()=>document.getElementById('mensaje').textContent='',2500);
+    }
+    dibujarTablero();
+    const pct = calcularPorcentaje();
+    if (pct===100) {
+        detenerTemporizador();
+        const t = document.getElementById('temporizador').textContent;
+        let m = '🎉 ¡FELICIDADES! 🎉<br>Completado en: ' + t;
+        if (nivelActual < NIVEL_MAXIMO) {
+            nivelActual++;
+            m += '<br>➡️ ¡Siguiente nivel desbloqueado!';
+        } else {
+            m += '<br>🏆 ¡Has llegado al Nivel 20! ¡Eres un experto!';
+        }
+        document.getElementById('mensaje').innerHTML = m;
+    }
+}
+
+function borrarCelda() {
+    if (filaSel===-1 || colSel===-1 || fijas[filaSel][colSel]) return;
+    tablero[filaSel][colSel]=0;
+    dibujarTablero();
+    calcularPorcentaje();
+}
+
+function ponerPista() {
+    for (let f=0;f<9;f++) {
+        for (let c=0;c<9;c++) {
+            if (tablero[f][c]===0) {
+                tablero[f][c] = solucion[f][c];
+                dibujarTablero();
+                calcularPorcentaje();
+                document.getElementById('mensaje').textContent = '💡 Pista usada';
+                setTimeout(()=>document.getElementById('mensaje').textContent='',2000);
+                const pct = calcularPorcentaje();
+                if (pct===100) {
+                    detenerTemporizador();
+                    const t = document.getElementById('temporizador').textContent;
+                    let m = '🎉 ¡FELICIDADES! 🎉<br>Completado en: ' + t;
+                    if (nivelActual < NIVEL_MAXIMO) {
+                        nivelActual++;
+                        m += '<br>➡️ ¡Siguiente nivel desbloqueado!';
+                    } else {
+                        m += '<br>🏆 ¡Has llegado al Nivel 20! ¡Eres un experto!';
+                    }
+                    document.getElementById('mensaje').innerHTML = m;
+                }
+                return;
+            }
+        }
+    }
+}
+
+actualizarFechaHora();
+setInterval(actualizarFechaHora, 60000);
+nuevaPartida();
+</script>
+</body>
+</html>
