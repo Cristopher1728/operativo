@@ -1,0 +1,881 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Tux_Math Web - Futurista</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; font-family: 'Courier New', Courier, monospace; }
+  
+  body { background: #111; display: flex; justify-content: center; height: 100dvh; overflow: hidden; }
+  
+  #game-wrapper {
+    display: flex; flex-direction: column;
+    width: 100%; max-width: 600px; height: 100%;
+    background: #000;
+    position: relative;
+  }
+
+  #hud {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 4px 10px;
+    background: #1a1a1a; color: #00ffff; font-size: 14px; font-weight: bold;
+    border-bottom: 1px solid #333;
+    flex-shrink: 0;
+    text-shadow: 0 0 5px #00ffff;
+  }
+  .hud-item { display: flex; align-items: center; gap: 5px; }
+  .hud-text { font-size: 14px; }
+
+  #canvas-container {
+    flex: 1; position: relative; width: 100%; background: #000;
+    overflow: hidden;
+  }
+  canvas { display: block; width: 100%; height: 100%; }
+
+  #keyboard-area {
+    background: #0a0a0a;
+    padding: 2px; display: flex; flex-direction: column; gap: 2px;
+    flex-shrink: 0;
+    padding-bottom: 4px;
+    border-top: 2px solid #222;
+  }
+  .key-row { display: flex; gap: 2px; height: 38px; }
+  
+  .key {
+    flex: 1; 
+    background: #151515; 
+    border: 1px solid #333; 
+    border-radius: 4px;
+    display: flex; justify-content: center; align-items: center;
+    font-size: 22px; font-weight: bold; 
+    color: #00ffff;
+    text-shadow: 0 0 8px #00ffff;
+    cursor: pointer;
+    box-shadow: 0 2px 0 #111, inset 0 0 10px rgba(0, 255, 255, 0.1); 
+    transition: transform 0.05s;
+  }
+  .key:active { 
+    transform: translateY(2px); 
+    box-shadow: 0 0 0 #111, inset 0 0 15px rgba(0, 255, 255, 0.3); 
+  }
+  .key.wide { flex: 2; }
+  
+  .key.action { 
+    background: #00ff00; 
+    color: #000000;
+    font-weight: bold; 
+    font-size: 22px; 
+    border: 1px solid #00aa00;
+    text-shadow: none;
+    box-shadow: 0 2px 0 #008800; 
+    flex: 4;
+  }
+  .key.action:active { box-shadow: none; transform: translateY(2px); }
+  
+  .key.delete { 
+    background: #ff0000; 
+    color: #000000;
+    font-weight: bold; 
+    font-size: 22px;
+    border: 1px solid #aa0000;
+    text-shadow: none;
+    box-shadow: 0 2px 0 #880000; 
+    flex: 1; 
+  }
+  .key.delete:active { box-shadow: none; transform: translateY(2px); }
+
+  #overlay {
+    position: absolute; inset: 0; background: rgba(0,0,0,0.95);
+    display: flex; flex-direction: column; justify-content: center; align-items: center;
+    color: white; text-align: center; z-index: 999; padding: 20px;
+  }
+  #overlay h1 { color: #00ffff; font-size: 28px; margin-bottom: 10px; text-shadow: 0 0 15px #00ffff; font-family: 'Courier New', monospace;}
+  #overlay p { color: #aaa; font-size: 16px; margin-bottom: 20px; line-height: 1.4; }
+  #overlay button {
+    padding: 12px 30px; font-size: 20px; font-weight: bold;
+    background: #00ff00; color: #000; border: none; border-radius: 4px;
+    box-shadow: 0 4px 0 #009900; cursor: pointer;
+    font-family: 'Courier New', monospace;
+  }
+  #overlay button:active { transform: translateY(4px); box-shadow: none; }
+
+  #music-btn {
+    position: absolute;
+    top: 35px;
+    right: 10px;
+    background: rgba(0, 255, 255, 0.2);
+    border: 1px solid #00ffff;
+    color: #00ffff;
+    font-size: 20px;
+    border-radius: 50%;
+    width: 40px; height: 40px;
+    display: flex; justify-content: center; align-items: center;
+    z-index: 100;
+    cursor: pointer;
+    text-shadow: 0 0 5px #00ffff;
+    box-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
+  }
+  #music-btn:active { background: rgba(0, 255, 255, 0.4); }
+</style>
+</head>
+<body>
+
+<div id="game-wrapper">
+  <div id="hud">
+    <div class="hud-item"><span style="font-size:16px;">🛸</span> <span class="hud-text" id="score">0</span></div>
+    <div class="hud-item"><span style="font-size:16px;">🎯</span> <span class="hud-text" id="level-display">Nivel 1</span></div>
+    <div class="hud-item"><span style="font-size:16px;">💥</span> <span class="hud-text" id="ops-left">15/15</span></div>
+  </div>
+
+  <div id="canvas-container">
+    <canvas id="gameCanvas"></canvas>
+    
+    <div id="music-btn" title="Encender/Apagar Música">🎵</div>
+
+    <div id="overlay">
+      <h1>Tux_Math</h1>
+      <p>Destruye los meteoritos resolviendo las operaciones.<br>Completa las 15 operaciones para pasar de nivel.</p>
+      <button id="start-btn">INICIAR</button>
+    </div>
+  </div>
+
+  <div id="keyboard-area">
+    <div class="key-row">
+      <div class="key" data-val="7">7</div>
+      <div class="key" data-val="8">8</div>
+      <div class="key" data-val="9">9</div>
+    </div>
+    <div class="key-row">
+      <div class="key" data-val="4">4</div>
+      <div class="key" data-val="5">5</div>
+      <div class="key" data-val="6">6</div>
+    </div>
+    <div class="key-row">
+      <div class="key" data-val="1">1</div>
+      <div class="key" data-val="2">2</div>
+      <div class="key" data-val="3">3</div>
+    </div>
+    <div class="key-row">
+      <div class="key wide" data-val="0">0</div>
+      <div class="key wide" data-val="del">+ / -</div>
+    </div>
+    <div class="key-row" style="height: 46px;">
+      <div class="key action" id="btn-validate">VALIDAR</div>
+      <div class="key delete" id="btn-delete">X</div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function() {
+  const canvas = document.getElementById('gameCanvas');
+  const ctx = canvas.getContext('2d');
+  const container = document.getElementById('canvas-container');
+  
+  const scoreEl = document.getElementById('score');
+  const levelEl = document.getElementById('level-display');
+  const opsLeftEl = document.getElementById('ops-left');
+  const overlay = document.getElementById('overlay');
+  const startBtn = document.getElementById('start-btn');
+  const musicBtn = document.getElementById('music-btn');
+
+  let W, H;
+  function resize() {
+    W = container.clientWidth;
+    H = container.clientHeight;
+    canvas.width = W;
+    canvas.height = H;
+  }
+  window.addEventListener('resize', resize);
+  resize();
+
+  let running = false;
+  let isTransitioning = false; 
+  let score = 0;
+  let level = 1;
+  
+  let currentInput = "";
+  let comets = [];
+  let lasers = [];
+  let particles = [];
+  
+  let lastSpawn = 0;
+  let spawnInterval = 2500;
+  let frameTime = 0;
+  let lastTimestamp = 0;
+  let displayElError = false;
+
+  let operationDeck = [];
+  let hitsThisLevel = 0;
+  const TOTAL_OPS = 15;
+  let transitionTimer = 0;
+
+  let igloos = [
+    { x: 0, y: 0, alive: true },
+    { x: 0, y: 0, alive: true },
+    { x: 0, y: 0, alive: true },
+    { x: 0, y: 0, alive: true }
+  ];
+
+  const groundY = H * 0.88; 
+
+  // ==========================================
+  // SISTEMA DE AUDIO (Sintetizador)
+  // ==========================================
+  let audioCtx = null;
+  let musicInterval = null;
+  let isMusicPlaying = true;
+  let isAudioInitialized = false;
+
+  function initAudio() {
+    if (isAudioInitialized) return;
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    isAudioInitialized = true;
+    startMusic();
+  }
+
+  function playTone(freq, type, duration, vol, slideTo = null) {
+    if (!audioCtx) return;
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    
+    osc.type = type;
+    osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+    
+    if (slideTo) {
+      osc.frequency.exponentialRampToValueAtTime(slideTo, audioCtx.currentTime + duration);
+    }
+    
+    gain.gain.setValueAtTime(vol, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+    
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    
+    osc.start();
+    osc.stop(audioCtx.currentTime + duration);
+  }
+
+  function playNoise(duration, vol) {
+    if (!audioCtx) return;
+    const bufferSize = audioCtx.sampleRate * duration;
+    const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+    const data = buffer.getChannelData(0);
+    
+    for (let i = 0; i < bufferSize; i++) {
+      data[i] = Math.random() * 2 - 1;
+    }
+    
+    const noise = audioCtx.createBufferSource();
+    noise.buffer = buffer;
+    
+    const gain = audioCtx.createGain();
+    gain.gain.setValueAtTime(vol, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
+    
+    noise.connect(gain);
+    gain.connect(audioCtx.destination);
+    noise.start();
+  }
+
+  function playLaserSound() {
+    playTone(1200, 'square', 0.1, 0.08, 400);
+    playTone(600, 'sine', 0.15, 0.1, 200);
+  }
+
+  function playExplosionSound() {
+    playNoise(0.4, 0.3);
+    playTone(80, 'sawtooth', 0.4, 0.25, 20);
+  }
+
+  function playErrorSound() {
+    playTone(200, 'sawtooth', 0.3, 0.15, 80);
+  }
+
+  function playLevelUpSound() {
+    playTone(440, 'square', 0.1, 0.1);
+    setTimeout(() => playTone(554, 'square', 0.1, 0.1), 100);
+    setTimeout(() => playTone(659, 'square', 0.1, 0.1), 200);
+    setTimeout(() => playTone(880, 'square', 0.4, 0.15), 300);
+  }
+
+  // MÚSICA ÉPICA Y RELAJANTE (Bucle de 32 compases)
+  function startMusic() {
+    if (musicInterval) clearInterval(musicInterval);
+    
+    // Progresión de acordes (Am - F - C - G) 
+    // Frecuencias base para los acordes de fondo
+    const chords = [
+      [220.00, 261.63, 329.63], // Am (La menor)
+      [174.61, 220.00, 261.63], // F  (Fa mayor)
+      [261.63, 329.63, 392.00], // C  (Do mayor)
+      [196.00, 246.94, 293.66]  // G  (Sol mayor)
+    ];
+    
+    // Melodía principal (notas individuales que cambian cada 2 compases)
+    const melody = [
+      440.00, 523.25, 659.25, 587.33, 
+      523.25, 440.00, 392.00, 440.00,
+      523.25, 659.25, 783.99, 659.25,
+      587.33, 523.25, 440.00, 392.00
+    ];
+
+    let step = 0; 
+    // El intervalo dura 375ms (aprox 80 BPM), un ritmo relajante pero constante
+    musicInterval = setInterval(() => {
+      if (!running || isTransitioning || !isMusicPlaying) return; 
+      
+      const currentChordIdx = Math.floor(step / 8) % 4; // Cambia de acorde cada 8 pasos
+      const currentChord = chords[currentChordIdx];
+      
+      // 1. PAD DE FONDO (Acorde que se mantiene sonando)
+      if (step % 8 === 0) {
+        // Tocamos las 3 notas del acorde suavemente (tipo cuerdas)
+        currentChord.forEach(freq => {
+          playTone(freq, 'sine', 3.0, 0.03); // Duración larga, volumen bajo
+        });
+        // Un bajo profundo
+        playTone(currentChord[0] / 2, 'triangle', 3.0, 0.05);
+      }
+
+      // 2. MELODÍA PRINCIPAL (Toca una nota cada 4 pasos)
+      if (step % 4 === 0) {
+        const melodyIdx = Math.floor(step / 4) % melody.length;
+        playTone(melody[melodyIdx], 'sine', 1.5, 0.05); // Nota clara y limpia
+        // Eco de la nota
+        setTimeout(() => {
+          if(isMusicPlaying && running) playTone(melody[melodyIdx], 'sine', 1.0, 0.02);
+        }, 200);
+      }
+
+      // 3. PERCUSIÓN SUAVE (Un golpe de bombo muy leve cada 8 pasos)
+      if (step % 8 === 0) {
+        playTone(60, 'sine', 0.3, 0.1, 30); 
+      }
+
+      step++;
+      if (step >= 64) step = 0; // Bucle de 64 pasos (32 compases)
+
+    }, 375); 
+  }
+
+  function toggleMusic() {
+    isMusicPlaying = !isMusicPlaying;
+    musicBtn.style.opacity = isMusicPlaying ? '1' : '0.4';
+    if (isMusicPlaying) initAudio(); // Asegurarse de que el contexto esté activo
+  }
+
+  musicBtn.addEventListener('click', toggleMusic);
+  // ==========================================
+
+  function updateIglooPositions() {
+    const padding = 30;
+    const startX = padding + 15;
+    const endX = W - padding - 15;
+    const step = (endX - startX) / 3;
+    for (let i = 0; i < 4; i++) {
+      igloos[i].x = startX + (step * i);
+      igloos[i].y = groundY + 15;
+    }
+  }
+
+  function randInt(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+  
+  function generateOperation() {
+    let a, b, text, answer;
+    let type = 'multiplicacion';
+    if (level === 1) type = randInt(1,2) === 1 ? 'multiplicacion' : 'suma_dificil';
+    if (level >= 3) type = 'multiplicacion_dificil';
+
+    const maxMult = 5 + level; 
+
+    if (type === 'multiplicacion' || type === 'multiplicacion_dificil') {
+      a = randInt(2, maxMult); 
+      b = randInt(2, maxMult);
+      text = `${a}x${b}=?`; 
+      answer = a * b;
+    } else if (type === 'suma_dificil') {
+      a = randInt(10, 20 + level*2); 
+      b = randInt(10, 20 + level*2);
+      text = `${a}+${b}=?`; 
+      answer = a + b;
+    }
+    return { text, answer };
+  }
+
+  function createLevelDeck() {
+    operationDeck = [];
+    let usedTexts = new Set();
+    let usedAnswers = new Set();
+    
+    while(operationDeck.length < TOTAL_OPS) {
+      let op = generateOperation();
+      if (!usedTexts.has(op.text) && !usedAnswers.has(op.answer)) {
+        usedTexts.add(op.text);
+        usedAnswers.add(op.answer);
+        operationDeck.push(op);
+      }
+    }
+    hitsThisLevel = 0;
+    updateOpsLeftDisplay();
+  }
+
+  function updateOpsLeftDisplay() {
+    opsLeftEl.textContent = `${TOTAL_OPS - hitsThisLevel}/${TOTAL_OPS}`;
+  }
+
+  function spawnComet() {
+    if (isTransitioning || operationDeck.length === 0) return; 
+    
+    const opIndex = randInt(0, operationDeck.length - 1);
+    const op = operationDeck[opIndex];
+    
+    operationDeck.splice(opIndex, 1); 
+    
+    const aliveIgloos = igloos.filter(i => i.alive);
+    if (aliveIgloos.length === 0) return;
+    
+    const target = aliveIgloos[randInt(0, aliveIgloos.length - 1)];
+    
+    ctx.font = 'bold 16px monospace';
+    const textWidth = ctx.measureText(op.text).width;
+    const boxWidth = textWidth + 16;
+    const boxHeight = 24;
+    
+    let startX = target.x + randInt(-30, 30);
+    startX = Math.max(boxWidth / 2 + 2, Math.min(W - boxWidth / 2 - 2, startX));
+    
+    const startY = -30;
+    
+    const dx = target.x - startX;
+    const dy = target.y - startY;
+    const dist = Math.hypot(dx, dy);
+    
+    const speed = 0.15 + (level * 0.02);
+
+    comets.push({
+      x: startX, y: startY,
+      vx: (dx / dist) * speed, vy: (dy / dist) * speed,
+      text: op.text, answer: op.answer,
+      alive: true, width: boxWidth, height: boxHeight,
+      radius: 15 + randInt(-2,2)
+    });
+  }
+
+  function drawBackground() {
+    ctx.fillStyle = '#050510';
+    ctx.fillRect(0, 0, W, H);
+
+    ctx.fillStyle = '#ffffff';
+    for(let i=0; i<50; i++) {
+        let sx = (i * 137.5) % W;
+        let sy = (i * 73.3) % (groundY - 50);
+        ctx.globalAlpha = 0.3 + (Math.sin(frameTime*0.002 + i)*0.5 + 0.5)*0.7;
+        ctx.fillRect(sx, sy, 1.5, 1.5);
+    }
+    ctx.globalAlpha = 1;
+
+    const jupX = W * 0.8;
+    const jupY = H * 0.2;
+    const jupR = W * 0.4;
+    
+    const grad = ctx.createRadialGradient(jupX - jupR/3, jupY - jupR/3, jupR/4, jupX, jupY, jupR);
+    grad.addColorStop(0, '#2a2a3a');
+    grad.addColorStop(0.5, '#151520');
+    grad.addColorStop(1, '#000000');
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.arc(jupX, jupY, jupR, 0, Math.PI*2);
+    ctx.fill();
+
+    ctx.fillStyle = '#1a1a1a';
+    ctx.beginPath();
+    ctx.moveTo(0, groundY);
+    for(let i=0; i<=W; i+=20) {
+        ctx.lineTo(i, groundY + Math.sin(i*0.05)*5 + Math.cos(i*0.02)*3);
+    }
+    ctx.lineTo(W, H);
+    ctx.lineTo(0, H);
+    ctx.fill();
+    
+    ctx.fillStyle = '#0a0a0a';
+    ctx.fillRect(0, groundY + 8, W, H - groundY - 8);
+    
+    ctx.strokeStyle = 'rgba(0, 255, 255, 0.1)';
+    ctx.lineWidth = 1;
+    for(let i=0; i<W; i+=40) {
+        ctx.beginPath();
+        ctx.moveTo(i, groundY);
+        ctx.lineTo(i - 30, H);
+        ctx.stroke();
+    }
+  }
+
+  function drawIgloo(x, y, alive) {
+    if (!alive) {
+      ctx.fillStyle = '#111';
+      ctx.beginPath(); ctx.arc(x, y, 18, Math.PI, 0); ctx.fill();
+      return;
+    }
+    
+    ctx.save();
+    ctx.translate(x, y);
+    
+    const grad = ctx.createLinearGradient(0, -25, 0, 0);
+    grad.addColorStop(0, '#00ffff');
+    grad.addColorStop(1, '#0066aa');
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.arc(0, 0, 22, Math.PI, 0);
+    ctx.fill();
+    
+    ctx.fillStyle = 'rgba(255,255,255,0.4)';
+    ctx.beginPath();
+    ctx.arc(-8, -8, 6, 0, Math.PI*2);
+    ctx.fill();
+
+    ctx.fillStyle = '#000';
+    ctx.beginPath(); ctx.ellipse(0, -8, 7, 10, 0, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = '#fff';
+    ctx.beginPath(); ctx.ellipse(0, -6, 4, 7, 0, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = '#00ffff'; ctx.shadowColor='#00ffff'; ctx.shadowBlur=5;
+    ctx.beginPath(); ctx.arc(-2, -12, 2, 0, Math.PI*2); ctx.arc(2, -12, 2, 0, Math.PI*2); ctx.fill();
+    ctx.shadowBlur = 0;
+    
+    ctx.restore();
+  }
+
+  function drawBaseArtillery() {
+    const baseW = 90;
+    const baseH = 20;
+    const baseX = W/2 - baseW/2;
+    const baseY = groundY + 5;
+
+    ctx.fillStyle = '#222';
+    ctx.beginPath();
+    ctx.moveTo(baseX, baseY + baseH);
+    ctx.lineTo(baseX + baseW, baseY + baseH);
+    ctx.lineTo(baseX + baseW - 15, baseY);
+    ctx.lineTo(baseX + 15, baseY);
+    ctx.fill();
+    
+    ctx.fillStyle = '#00ffff'; ctx.fillRect(baseX + 20, baseY + 5, 5, 3);
+    ctx.fillStyle = '#ff00ff'; ctx.fillRect(baseX + 30, baseY + 5, 5, 3);
+    
+    ctx.fillStyle = '#000';
+    ctx.beginPath(); ctx.arc(W/2, baseY + 2, 14, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(W/2 - 14, baseY + 8, 4, 7, -0.5, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(W/2 + 14, baseY + 8, 4, 7, 0.5, 0, Math.PI*2); ctx.fill();
+  }
+
+  function drawMonitor() {
+    const monW = 60;
+    const monH = 24;
+    const monX = W/2 - monW/2;
+    const monY = groundY - 35;
+
+    ctx.fillStyle = '#333';
+    ctx.fillRect(monX - 2, monY - 2, monW + 4, monH + 4);
+    ctx.fillStyle = '#000';
+    ctx.fillRect(monX, monY, monW, monH);
+    
+    ctx.fillStyle = '#00ffff';
+    ctx.shadowColor = '#00ffff';
+    ctx.shadowBlur = 8;
+    ctx.font = 'bold 18px "Courier New", monospace';
+    ctx.textAlign = 'right'; 
+    ctx.textBaseline = 'middle';
+    const displayText = currentInput === "" ? "0" : currentInput;
+    ctx.fillText(displayText, monX + monW - 4, monY + monH/2 + 1);
+    ctx.shadowBlur = 0;
+
+    if (displayElError) {
+      ctx.strokeStyle = '#ff0000';
+      ctx.lineWidth = 3;
+      ctx.strokeRect(monX, monY, monW, monH);
+    }
+  }
+
+  function drawComet(c) {
+    if (!c.alive) return;
+    
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+    ctx.fillRect(c.x - c.width/2, c.y - c.height/2, c.width, c.height);
+    
+    ctx.strokeStyle = '#ff3300';
+    ctx.lineWidth = 1.5;
+    ctx.strokeRect(c.x - c.width/2, c.y - c.height/2, c.width, c.height);
+    
+    ctx.fillStyle = '#ffffff';
+    ctx.shadowColor = '#ff3300';
+    ctx.shadowBlur = 5;
+    ctx.font = 'bold 16px monospace'; 
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(c.text, c.x, c.y + 1);
+
+    ctx.save();
+    ctx.translate(c.x, c.y - c.height/2 - 8);
+    
+    const mgrad = ctx.createRadialGradient(-3, -3, 1, 0, 0, c.radius);
+    mgrad.addColorStop(0, '#ffff00');
+    mgrad.addColorStop(0.4, '#ff6600');
+    mgrad.addColorStop(1, '#cc0000');
+    
+    ctx.fillStyle = mgrad;
+    ctx.beginPath();
+    for(let i=0; i<8; i++) {
+        let angle = (i / 8) * Math.PI * 2;
+        let r = c.radius + (Math.sin(i*3 + frameTime*0.01)*2);
+        let px = Math.cos(angle) * r;
+        let py = Math.sin(angle) * r;
+        if(i===0) ctx.moveTo(px, py);
+        else ctx.lineTo(px, py);
+    }
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+    ctx.shadowBlur = 0;
+  }
+
+  function drawLaser(l) {
+    ctx.strokeStyle = '#00ffff';
+    ctx.lineWidth = 2;
+    ctx.shadowColor = '#00ffff';
+    ctx.shadowBlur = 10;
+    ctx.beginPath();
+    ctx.moveTo(l.x1, l.y1);
+    ctx.lineTo(l.x2, l.y2);
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+  }
+
+  function drawParticles() {
+    particles.forEach(p => {
+      ctx.globalAlpha = p.life / p.maxLife;
+      ctx.fillStyle = p.color;
+      ctx.fillRect(p.x, p.y, p.size, p.size);
+    });
+    ctx.globalAlpha = 1;
+  }
+
+  function drawTransitionText() {
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.85)';
+    ctx.fillRect(0, 0, W, H);
+    
+    ctx.fillStyle = '#00ffff';
+    ctx.shadowColor = '#00ffff';
+    ctx.shadowBlur = 20;
+    ctx.font = 'bold 28px "Courier New", monospace';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    
+    ctx.fillText(`¡NIVEL ${level} COMPLETADO!`, W/2, H/2 - 20);
+    
+    ctx.font = 'bold 18px "Courier New", monospace';
+    ctx.fillStyle = '#ffffff';
+    ctx.shadowBlur = 0;
+    const secondsLeft = Math.ceil(transitionTimer / 1000);
+    ctx.fillText(`Preparando Nivel ${level + 1} en ${secondsLeft}...`, W/2, H/2 + 30);
+  }
+
+  function render() {
+    drawBackground();
+    updateIglooPositions();
+    
+    igloos.forEach(ig => drawIgloo(ig.x, ig.y, ig.alive));
+    
+    drawBaseArtillery();
+    drawMonitor();
+
+    comets.forEach(drawComet);
+    lasers.forEach(drawLaser);
+    drawParticles();
+
+    if (isTransitioning) {
+      drawTransitionText();
+    }
+  }
+
+  function update(dt) {
+    frameTime += dt;
+
+    if (isTransitioning) {
+      transitionTimer -= dt;
+      if (transitionTimer <= 0) {
+        startNextLevel();
+      }
+      return;
+    }
+
+    if (frameTime - lastSpawn > spawnInterval && operationDeck.length > 0) {
+      spawnComet();
+      lastSpawn = frameTime;
+    }
+
+    comets.forEach(c => {
+      if (!c.alive) return;
+      c.x += c.vx * dt * 0.06;
+      c.y += c.vy * dt * 0.06;
+
+      if (c.y > groundY - 10) {
+        c.alive = false;
+        onImpact(c);
+      }
+    });
+    comets = comets.filter(c => c.alive);
+
+    lasers.forEach(l => l.life -= dt);
+    lasers = lasers.filter(l => l.life > 0);
+
+    particles.forEach(p => {
+      p.x += p.vx; p.y += p.vy; p.life -= dt;
+    });
+    particles = particles.filter(p => p.life > 0);
+  }
+
+  function onImpact(c) {
+    operationDeck.push({ text: c.text, answer: c.answer });
+    
+    playExplosionSound();
+
+    let closest = igloos[0];
+    let minDist = Infinity;
+    igloos.forEach(ig => {
+      if (!ig.alive) return;
+      const d = Math.hypot(c.x - ig.x, c.y - ig.y);
+      if (d < minDist) { minDist = d; closest = ig; }
+    });
+
+    if (closest && minDist < 50) {
+      closest.alive = false;
+      
+      for(let i=0; i<15; i++) {
+        particles.push({
+          x: closest.x, y: closest.y - 15,
+          vx: (Math.random()-0.5)*8, vy: (Math.random()-0.5)*8,
+          size: randInt(2,6), color: ['#ff0000', '#ff6600', '#ffff00'][randInt(0,2)], life: 600, maxLife: 600
+        });
+      }
+      if (igloos.every(ig => !ig.alive)) {
+        igloos.forEach(ig => ig.alive = true);
+      }
+    }
+  }
+
+  function validateAnswer() {
+    if (!running || isTransitioning || currentInput === "") return;
+    
+    initAudio(); 
+    
+    const num = parseInt(currentInput, 10);
+    let hit = false;
+
+    comets.forEach(c => {
+      if (c.alive && c.answer === num) {
+        c.alive = false;
+        hit = true;
+        score += 10;
+        scoreEl.textContent = score;
+        
+        hitsThisLevel++;
+        updateOpsLeftDisplay();
+        
+        playLaserSound();
+        
+        lasers.push({ x1: W/2, y1: groundY - 35, x2: c.x, y2: c.y, life: 150 });
+        
+        for(let i=0; i<12; i++) {
+          particles.push({
+            x: c.x, y: c.y,
+            vx: (Math.random()-0.5)*10, vy: (Math.random()-0.5)*10,
+            size: randInt(2,5), color: '#ffaa00', life: 500, maxLife: 500
+          });
+        }
+      }
+    });
+
+    if (!hit) {
+      displayElError = true;
+      playErrorSound();
+      setTimeout(() => displayElError = false, 300);
+    }
+    
+    currentInput = "";
+
+    if (hitsThisLevel >= TOTAL_OPS) {
+      isTransitioning = true;
+      transitionTimer = 3000; 
+      comets = []; 
+      playLevelUpSound();
+    }
+  }
+
+  function startNextLevel() {
+    level++;
+    levelEl.textContent = `Nivel ${level}`;
+    spawnInterval = Math.max(1500, spawnInterval - 200); 
+    createLevelDeck(); 
+    isTransitioning = false;
+  }
+
+  function resetGame() {
+    score = 0; level = 1;
+    scoreEl.textContent = score; 
+    levelEl.textContent = `Nivel ${level}`; 
+    igloos.forEach(ig => ig.alive = true);
+    comets = []; lasers = []; particles = [];
+    currentInput = "";
+    isTransitioning = false;
+    spawnInterval = 2500;
+    lastSpawn = 0; frameTime = 0;
+    running = true;
+    lastTimestamp = performance.now();
+    updateIglooPositions();
+    createLevelDeck();
+  }
+
+  document.querySelectorAll('.key[data-val]').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      if (!running || isTransitioning) return;
+      if(!isAudioInitialized) initAudio(); 
+      
+      const val = e.target.getAttribute('data-val');
+      if (val === 'del') {
+        currentInput = currentInput.slice(0, -1);
+      } else {
+        if (currentInput.length < 3) currentInput += val; 
+      }
+    });
+  });
+
+  document.getElementById('btn-validate').addEventListener('click', validateAnswer);
+  document.getElementById('btn-delete').addEventListener('click', () => {
+    currentInput = "";
+  });
+
+  startBtn.addEventListener('click', () => {
+    initAudio(); 
+    overlay.style.display = 'none'; 
+    resetGame();
+  });
+
+  function loop(timestamp) {
+    if (!lastTimestamp) lastTimestamp = timestamp;
+    const dt = Math.min(timestamp - lastTimestamp, 100);
+    lastTimestamp = timestamp;
+
+    if (running) update(dt);
+    render();
+    requestAnimationFrame(loop);
+  }
+
+  setTimeout(() => {
+    resize();
+    requestAnimationFrame(loop);
+  }, 100);
+})();
+</script>
+</body>
+</html>
