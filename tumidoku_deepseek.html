@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TUMIDOKU</title>
+    <style>
+        :root {
+            --bg-color: #0d1117;
+            --grid-bg: #0b1a2a;
+            --border-light: #1f3b54;
+            --border-heavy: #00e5ff;
+            --text-fixed: #00e5ff;
+            --text-user: #ffffff;
+            --highlight-yellow: rgba(187, 150, 0, 0.4); /* Amarillo luminoso para fila/columna */
+            --selected-cyan: rgba(0, 229, 255, 0.3); /* Cian para la casilla seleccionada */
+            --btn-bg: #00b4d8;
+            --btn-hover: #0077b6;
+            --panel-bg: #0b1a2a;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0;
+            padding: 15px;
+            user-select: none;
+            box-sizing: border-box;
+            min-height: 100vh;
+        }
+
+        /* Panel Superior (Fecha y Progreso) */
+        .top-panel {
+            width: 100%;
+            max-width: 400px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: var(--panel-bg);
+            padding: 12px 15px;
+            border-radius: 8px;
+            border: 2px solid var(--border-heavy);
+            margin-bottom: 15px;
+            box-sizing: border-box;
+            font-size: 0.9em;
+        }
+
+        .top-left { display: flex; flex-direction: column; gap: 4px; }
+        .top-right { font-weight: bold; color: var(--border-heavy); }
+        .date-text { color: #8892b0; }
+
+        /* Panel del Cronómetro */
+        .timer-panel {
+            width: 100%;
+            max-width: 400px;
+            background-color: var(--panel-bg);
+            border: 1px solid var(--border-light);
+            border-radius: 8px;
+            padding: 10px;
+            text-align: center;
+            margin-bottom: 15px;
+            box-sizing: border-box;
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #ffd700;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Tablero */
+        #sudoku-board {
+            display: grid;
+            grid-template-columns: repeat(9, 1fr);
+            gap: 1px;
+            background-color: var(--border-light);
+            border: 3px solid var(--border-heavy);
+            border-radius: 4px;
+            padding: 2px;
+            width: 100%;
+            max-width: 400px;
+            aspect-ratio: 1 / 1;
+            margin-bottom: 15px;
+            box-shadow: 0 0 15px rgba(0, 229, 255, 0.2);
+        }
+
+        .cell {
+            background-color: var(--grid-bg);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.4em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.1s;
+            position: relative;
+        }
+
+        /* Bordes gruesos para los bloques 3x3 */
+        .cell:nth-child(3n) { border-right: 2px solid var(--border-heavy); }
+        .cell:nth-child(9n) { border-right: none; }
+        .cell:nth-child(n+19):nth-child(-n+27) { border-bottom: 2px solid var(--border-heavy); }
+        .cell:nth-child(n+46):nth-child(-n+54) { border-bottom: 2px solid var(--border-heavy); }
+
+        .cell.fixed { color: var(--text-fixed); }
+        .cell.user-input { color: var(--text-user); }
+        
+        /* --- SISTEMA DE RESALTADO --- */
+        /* 1. Resaltado de fila y columna (Amarillo) */
+        .cell.highlight-yellow {
+            background-color: var(--highlight-yellow);
+        }
+        /* 2. Resaltado del mismo número */
+        .cell.highlight-same-number {
+            background-color: rgba(0, 229, 255, 0.2);
+            color: #fff;
+            text-shadow: 0 0 5px #00e5ff;
+        }
+        /* 3. Casilla seleccionada actualmente (Cian brillante) */
+        .cell.selected {
+            background-color: var(--selected-cyan);
+            box-shadow: inset 0 0 10px var(--border-heavy);
+        }
+        /* Si un número está mal (opcional, se pinta rojo) */
+        .cell.error {
+            color: #ff4d4d;
+            text-shadow: 0 0 5px #ff4d4d;
+        }
+
+        /* Controles (Botones de acción) */
+        .controls {
+            display: flex;
+            gap: 8px;
+            width: 100%;
+            max-width: 400px;
+            margin-bottom: 10px;
+        }
+
+        button {
+            border: none;
+            border-radius: 6px;
+            background-color: var(--btn-bg);
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .controls button {
+            flex: 1;
+            padding: 10px 5px;
+            font-size: 0.9em;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .controls button:hover { background-color: var(--btn-hover); }
+        .controls button:disabled { background-color: #333; color: #777; cursor: not-allowed; }
+
+        /* Teclado Numérico (1 fila) */
+        .numpad {
+            display: flex;
+            gap: 4px;
+            width: 100%;
+            max-width: 400px;
+            justify-content: space-between;
+        }
+
+        .numpad button {
+            flex: 1;
+            aspect-ratio: 1 / 1;
+            font-size: 1.2em;
+            background-color: #0b1a2a;
+            border: 1px solid var(--border-heavy);
+            color: var(--border-heavy);
+            border-radius: 6px;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .numpad button:hover { background-color: var(--border-heavy); color: var(--bg-color); }
+
+        /* Alerta de victoria */
+        #message {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.95);
+            border: 2px solid #00ff88;
+            padding: 20px 40px;
+            border-radius: 10px;
+            font-size: 1.5em;
+            color: #00ff88;
+            font-weight: bold;
+            text-align: center;
+            display: none;
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.5);
+            z-index: 100;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Panel Superior -->
+    <div class="top-panel">
+        <div class="top-left">
+            <span class="date-text" id="current-date">Cargando...</span>
+            <span class="date-text" id="current-time">--:--</span>
+        </div>
+        <div class="top-right">Completado: <span id="progress-text">0%</span></div>
+    </div>
+
+    <!-- Cronómetro -->
+    <div class="timer-panel">
+        ⏱️ <span id="timer-text">00:00:00</span>
+    </div>
+
+    <!-- Tablero -->
+    <div id="sudoku-board"></div>
+
+    <!-- Botones de acción -->
+    <div class="controls">
+        <button onclick="startNewGame()">🔄 Nueva</button>
+        <button id="btn-hint" onclick="giveHint()">💡 Pista</button>
+        <button onclick="eraseCell()">❌ Borrar</button>
+    </div>
+
+    <!-- Teclado numérico -->
+    <div class="numpad" id="numpad">
+        <button onclick="inputNumber(1)">1</button>
+        <button onclick="inputNumber(2)">2</button>
+        <button onclick="inputNumber(3)">3</button>
+        <button onclick="inputNumber(4)">4</button>
+        <button onclick="inputNumber(5)">5</button>
+        <button onclick="inputNumber(6)">6</button>
+        <button onclick="inputNumber(7)">7</button>
+        <button onclick="inputNumber(8)">8</button>
+        <button onclick="inputNumber(9)">9</button>
+    </div>
+
+    <div id="message"></div>
+
+    <script>
+        let currentLevel = 1;
+        let board = [];
+        let solution = [];
+        let fixedCells = [];
+        let selectedCell = null;
+        let hintsAvailable = 3;
+
+        // Variables del temporizador
+        let timerInterval = null;
+        let secondsElapsed = 0;
+        let isGameRunning = false;
+
+        const boardDiv = document.getElementById('sudoku-board');
+        const progressText = document.getElementById('progress-text');
+        const timerText = document.getElementById('timer-text');
+        const messageDiv = document.getElementById('message');
+        const btnHint = document.getElementById('btn-hint');
+
+        // Reloj y Fecha en vivo
+        function updateDateTime() {
+            const now = new Date();
+            const dateOptions = { day: 'numeric', month: 'long', year: 'numeric' };
+            document.getElementById('current-date').innerText = now.toLocaleDateString('es-ES', dateOptions);
+            
+            const timeOptions = { hour: '2-digit', minute: '2-digit', hour12: true };
+            document.getElementById('current-time').innerText = now.toLocaleTimeString('es-ES', timeOptions);
+        }
+        setInterval(updateDateTime, 1000);
+        updateDateTime();
+
+        // Lógica del Cronómetro
+        function startTimer() {
+            if (timerInterval) clearInterval(timerInterval);
+            secondsElapsed = 0;
+            isGameRunning = true;
+            updateTimerDisplay();
+            
+            timerInterval = setInterval(() => {
+                if (isGameRunning) {
+                    secondsElapsed++;
+                    updateTimerDisplay();
+                }
+            }, 1000);
+        }
+
+        function stopTimer() {
+            isGameRunning = false;
+        }
+
+        function updateTimerDisplay() {
+            const h = Math.floor(secondsElapsed / 3600).toString().padStart(2, '0');
+            const m = Math.floor((secondsElapsed % 3600) / 60).toString().padStart(2, '0');
+            const s = (secondsElapsed % 60).toString().padStart(2, '0');
+            timerText.innerText = `${h}:${m}:${s}`;
+        }
+
+        // Iniciar juego
+        function startNewGame() {
+            messageDiv.style.display = "none";
+            selectedCell = null;
+            startTimer();
+            
+            let cellsToRemove = currentLevel <= 3 ? 30 : (currentLevel <= 6 ? 40 : Math.min(50 + (currentLevel - 6) * 2, 60));
+            hintsAvailable = currentLevel <= 3 ? 5 : (currentLevel <= 6 ? 3 : 1);
+            updateHintButton();
+
+            generateSudoku();
+            removeNumbers(cellsToRemove);
+            renderBoard();
+            updateProgress();
+        }
+
+        // Generación de Sudoku
+        function generateSudoku() {
+            board = Array(9).fill(null).map(() => Array(9).fill(0));
+            solveSudoku(board);
+            solution = board.map(row => [...row]);
+        }
+
+        function solveSudoku(grid) {
+            for (let row = 0; row < 9; row++) {
+                for (let col = 0; col < 9; col++) {
+                    if (grid[row][col] === 0) {
+                        let nums = [1, 2, 3, 4, 5, 6, 7, 8, 9].sort(() => Math.random() - 0.5);
+                        for (let num of nums) {
+                            if (isValid(grid, row, col, num)) {
+                                grid[row][col] = num;
+                                if (solveSudoku(grid)) return true;
+                                grid[row][col] = 0;
+                            }
+                        }
+                        return false;
+                    }
+                }
+            }
+            return true;
+        }
+
+        function isValid(grid, row, col, num) {
+            for (let i = 0; i < 9; i++) {
+                if (grid[row][i] === num || grid[i][col] === num) return false;
+            }
+            let startRow = Math.floor(row / 3) * 3;
+            let startCol = Math.floor(col / 3) * 3;
+            for (let i = 0; i < 3; i++) {
+                for (let j = 0; j < 3; j++) {
+                    if (grid[startRow + i][startCol + j] === num) return false;
+                }
+            }
+            return true;
+        }
+
+        function removeNumbers(count) {
+            fixedCells = Array(9).fill(null).map(() => Array(9).fill(true));
+            let removed = 0;
+            while (removed < count) {
+                let r = Math.floor(Math.random() * 9);
+                let c = Math.floor(Math.random() * 9);
+                if (board[r][c] !== 0) {
+                    board[r][c] = 0;
+                    fixedCells[r][c] = false;
+                    removed++;
+                }
+            }
+        }
+
+        // Renderizar Tablero
+        function renderBoard() {
+            boardDiv.innerHTML = '';
+            for (let r = 0; r < 9; r++) {
+                for (let c = 0; c < 9; c++) {
+                    const cell = document.createElement('div');
+                    cell.classList.add('cell');
+                    cell.dataset.row = r;
+                    cell.dataset.col = c;
+
+                    if (board[r][c] !== 0) {
+                        cell.innerText = board[r][c];
+                        if (fixedCells[r][c]) cell.classList.add('fixed');
+                        else cell.classList.add('user-input');
+                    }
+                    cell.addEventListener('click', () => selectCell(r, c));
+                    boardDiv.appendChild(cell);
+                }
+            }
+        }
+
+        // Seleccionar Celda y aplicar el resaltado que pediste
+        function selectCell(row, col) {
+            if (fixedCells[row][col]) return; // No puedes seleccionar una pista fija
+            selectedCell = { row, col };
+            
+            // Limpiamos todos los resaltados anteriores
+            document.querySelectorAll('.cell').forEach(c => {
+                c.classList.remove('selected', 'highlight-yellow', 'highlight-same-number');
+            });
+
+            // Obtenemos el número de la casilla seleccionada (si es que hay uno)
+            const selectedNumber = board[row][col];
+
+            // Recorremos todo el tablero para pintar la cruz
+            document.querySelectorAll('.cell').forEach(c => {
+                const r = parseInt(c.dataset.row);
+                const colIdx = parseInt(c.dataset.col);
+                const cellNumber = board[r][colIdx];
+                
+                // 1. Resaltar fila y columna (Color amarillo)
+                if (r === row || colIdx === col) {
+                    c.classList.add('highlight-yellow');
+                }
+
+                // 2. Si hay un número en la casilla, resaltar los mismos números en el tablero
+                if (selectedNumber !== 0 && cellNumber === selectedNumber) {
+                    c.classList.add('highlight-same-number');
+                }
+
+                // 3. Pintar de cian la casilla exacta que seleccionaste
+                if (r === row && colIdx === col) {
+                    c.classList.add('selected');
+                }
+            });
+        }
+
+        // Poner un número
+        function inputNumber(num) {
+            if (!selectedCell) return;
+            const { row, col } = selectedCell;
+            
+            board[row][col] = num;
+            const cellDiv = document.querySelector(`.cell[data-row="${row}"][data-col="${col}"]`);
+            
+            cellDiv.innerText = num;
+            cellDiv.classList.remove('error');
+            cellDiv.classList.add('user-input');
+
+            // Volvemos a aplicar el resaltado para que se iluminen los números iguales
+            selectCell(row, col);
+            
+            updateProgress();
+            checkWin();
+        }
+
+        // Borrar un número
+        function eraseCell() {
+            if (!selectedCell) return;
+            const { row, col } = selectedCell;
+            
+            board[row][col] = 0;
+            const cellDiv = document.querySelector(`.cell[data-row="${row}"][data-col="${col}"]`);
+            cellDiv.innerText = "";
+            cellDiv.classList.remove('error');
+
+            selectCell(row, col);
+            updateProgress();
+        }
+
+        // Dar una pista
+        function giveHint() {
+            if (hintsAvailable <= 0 || !selectedCell) return;
+            
+            const { row, col } = selectedCell;
+            if (board[row][col] === solution[row][col]) return;
+
+            board[row][col] = solution[row][col];
+            const cellDiv = document.querySelector(`.cell[data-row="${row}"][data-col="${col}"]`);
+            cellDiv.innerText = solution[row][col];
+            cellDiv.classList.remove('user-input', 'error');
+            cellDiv.classList.add('fixed');
+
+            hintsAvailable--;
+            updateHintButton();
+            selectCell(row, col);
+            updateProgress();
+            checkWin();
+        }
+
+        function updateHintButton() {
+            btnHint.innerText = `💡 Pista (${hintsAvailable})`;
+            btnHint.disabled = hintsAvailable <= 0;
+        }
+
+        // Actualizar el porcentaje de progreso
+        function updateProgress() {
+            let filled = 0;
+            let total = 81;
+            for (let r = 0; r < 9; r++) {
+                for (let c = 0; c < 9; c++) {
+                    if (board[r][c] !== 0) filled++;
+                }
+            }
+            const percent = Math.round((filled / total) * 100);
+            progressText.innerText = `${percent}%`;
+        }
+
+        // Verificar si se ha ganado
+        function checkWin() {
+            for (let r = 0; r < 9; r++) {
+                for (let c = 0; c < 9; c++) {
+                    if (board[r][c] !== solution[r][c]) return;
+                }
+            }
+
+            stopTimer();
+            messageDiv.innerHTML = `¡Nivel ${currentLevel} Completado!<br><span style="font-size:0.6em; color:white;">Tiempo: ${timerText.innerText}</span>`;
+            messageDiv.style.display = "block";
+            
+            if (currentLevel < 20) {
+                setTimeout(() => {
+                    currentLevel++;
+                    startNewGame();
+                }, 3000);
+            } else {
+                messageDiv.innerHTML = "¡Felicidades! Has superado TUMIDOKU.";
+            }
+        }
+
+        // Soporte para teclado físico
+        document.addEventListener('keydown', (e) => {
+            if (e.key >= '1' && e.key <= '9') {
+                inputNumber(parseInt(e.key));
+            } else if (e.key === 'Backspace' || e.key === 'Delete') {
+                eraseCell();
+            }
+        });
+
+        window.onload = startNewGame;
+
+    </script>
+</body>
+</html>
